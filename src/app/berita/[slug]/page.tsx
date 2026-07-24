@@ -214,6 +214,12 @@ export default async function ArticleDetailPage({ params }: PageProps) {
   const formattedDate = formatDate(post.date);
   const thumbnailUrl = getThumbnailUrl(post);
 
+  // 1. Bersihkan Kode HTML WordPress (Regex Stripper width, height, & style)
+  let cleanContent = (post.content?.rendered || '')
+    .replace(/width="[^"]*"/gi, '')
+    .replace(/height="[^"]*"/gi, '')
+    .replace(/style="[^"]*"/gi, '');
+
   return (
     <div className="space-y-8 pb-16 font-sans w-full max-w-full overflow-x-hidden">
       {/* Breadcrumb Navigation */}
@@ -315,23 +321,22 @@ export default async function ArticleDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* 5. JURUS PAMUNGKAS SAKTI CSS MURNI & WP-CONTENT DIV */}
+          {/* 5. SUNTIKKAN CSS PEMBUNUH & CONTAINER SUPER AMAN (OPSI NUKLIR) */}
           <style>{`
-            .wp-content img, .wp-content figure, .wp-content iframe {
+            .wp-content { max-width: 100vw !important; overflow-x: hidden !important; }
+            .wp-content * { max-width: 100% !important; box-sizing: border-box !important; }
+            .wp-content img, .wp-content figure, .wp-content video, .wp-content iframe {
               max-width: 100% !important;
+              width: 100% !important;
               height: auto !important;
-              width: auto !important;
-              margin: 1rem auto !important;
-              border-radius: 0px !important;
-            }
-            .wp-content {
-              overflow-wrap: break-word !important;
-              word-wrap: break-word !important;
+              object-fit: contain !important;
+              margin: 1.5rem auto !important;
+              display: block !important;
             }
           `}</style>
           <div
-            className="w-full max-w-full overflow-hidden break-words wp-content text-base md:text-lg text-gray-800 leading-loose [&_p]:mb-6 font-sans pt-4"
-            dangerouslySetInnerHTML={{ __html: post.content?.rendered || '' }}
+            className="w-full max-w-[100vw] overflow-x-hidden px-4 md:px-0 break-words whitespace-pre-wrap wp-content text-base md:text-lg text-gray-800 leading-loose [&_p]:mb-6 font-sans pt-4"
+            dangerouslySetInnerHTML={{ __html: cleanContent }}
           />
 
           {/* Disclaimer & Editor Footer */}
