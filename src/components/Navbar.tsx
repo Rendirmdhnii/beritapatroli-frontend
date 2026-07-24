@@ -138,7 +138,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* ================= TINGKAT BAWAH (MENU HORIZONTAL SWIPE DI HP & LAPTOP) ================= */}
+      {/* ================= TINGKAT BAWAH (MENU NAVIGASI MERAH - SWIPE DI HP) ================= */}
       <nav className="bg-red-800 text-white sticky top-0 z-50 border-b-4 border-black">
         <div className="max-w-7xl mx-auto">
           {/* Scrollable Horizontal Category Bar (Swipeable di HP) */}
