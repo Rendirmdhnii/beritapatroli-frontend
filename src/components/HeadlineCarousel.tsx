@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Flame, User, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { User, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface WpMediaSize {
   source_url?: string;
@@ -150,14 +150,13 @@ export default function HeadlineCarousel({ posts }: HeadlineCarouselProps) {
           </div>
         ))}
 
-        {/* Gradient Overlay for photo clarity (from-black via-black/60 to-transparent) */}
+        {/* Gradient Overlay for photo clarity */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent z-1" />
 
-        {/* Top Badges */}
+        {/* Top Badges (Tanpa ikon Flame/hiasan alay, bersih profesional) */}
         <div className="absolute top-4 left-4 sm:top-6 sm:left-6 flex flex-wrap gap-2 z-10">
-          <span className="bg-red-800 text-white text-xs font-black px-3 py-1 uppercase tracking-widest rounded-none border border-red-600 flex items-center gap-1.5">
-            <Flame className="w-4 h-4 text-yellow-400" />
-            HEADLINE INVESTIGASI
+          <span className="bg-red-800 text-white text-xs font-black px-3 py-1 uppercase tracking-widest rounded-none border border-red-600">
+            LAPORAN UTAMA &amp; KASUS MENONJOL
           </span>
           <span className="bg-black/90 text-white text-xs font-bold px-3 py-1 uppercase tracking-wider rounded-none border border-zinc-700">
             {getCategory(currentPost)}

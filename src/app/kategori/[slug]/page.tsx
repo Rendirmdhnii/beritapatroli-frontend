@@ -310,7 +310,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
               <Folder className="w-4 h-4" />
             </span>
             <span className="text-xs font-black uppercase tracking-widest text-red-500 font-mono">
-              KATEGORI HUKUM & INVESTIGASI
+              EDISI KHUSUS INVESTIGASI
             </span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight font-serif-heading uppercase text-white">

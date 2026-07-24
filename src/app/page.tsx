@@ -195,10 +195,10 @@ export default async function HomePage({ searchParams }: PageProps) {
           <div className="border-b-4 border-black pb-2 flex items-center justify-between">
             <h2 className="text-lg font-black text-black uppercase tracking-wider font-serif-heading flex items-center gap-2">
               <span className="w-3 h-3 bg-red-800 inline-block" />
-              Laporan Utama & Kasus Menonjol
+              LAPORAN UTAMA &amp; KASUS MENONJOL
             </h2>
             <span className="text-xs font-mono font-bold text-gray-500 uppercase tracking-widest hidden sm:inline-block">
-              Edisi Khusus Investigasi
+              EDISI KHUSUS INVESTIGASI
             </span>
           </div>
 
@@ -253,9 +253,9 @@ export default async function HomePage({ searchParams }: PageProps) {
         {/* Header Seksi */}
         <div className="bg-black text-white p-3 border-b-4 border-red-800 flex items-center justify-between rounded-none">
           <div className="flex items-center gap-2">
-            <Newspaper className="w-5 h-5 text-red-500" />
+            <span className="w-3 h-3 bg-red-800 inline-block" />
             <h2 className="text-base sm:text-lg font-black uppercase tracking-widest font-serif-heading">
-              {isFirstPage ? 'Arsip Berita & Catatan Kriminal Terbaru' : `Arsip Berita Kriminal - Halaman ${currentPage}`}
+              ARSIP BERITA &amp; CATATAN KRIMINAL TERBARU
             </h2>
           </div>
           <span className="text-xs font-mono text-gray-400 uppercase tracking-widest hidden sm:inline-block">
