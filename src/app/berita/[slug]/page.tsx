@@ -232,14 +232,14 @@ export default async function ArticleDetailPage({ params }: PageProps) {
       </nav>
 
       {/* Main Grid: Article Column & Sidebar */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start max-w-7xl mx-auto px-2 sm:px-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start max-w-7xl mx-auto px-0 md:px-4">
         
-        {/* ================= MAIN ARTICLE ================= */}
-        <article className="lg:col-span-8 bg-white border-2 border-black p-4 sm:p-8 md:p-10 space-y-6 max-w-3xl mx-auto w-full rounded-none">
+        {/* ================= MAIN ARTICLE (BERSIH DI MOBILE, LATAR PUTIH, TANPA BORDER KAKU ON MOBILE) ================= */}
+        <article className="lg:col-span-8 bg-white border-0 md:border-2 md:border-black space-y-6 max-w-3xl mx-auto w-full rounded-none px-4 md:px-8 py-2 md:py-8">
           
           {/* 1. Kategori Badge */}
           <div>
-            <span className="bg-red-800 text-white text-xs font-black px-3 py-1 uppercase tracking-widest rounded-none border border-black">
+            <span className="bg-red-800 text-white text-xs font-black px-3 py-1 uppercase tracking-widest rounded-none border border-black inline-block">
               {category}
             </span>
           </div>
@@ -249,20 +249,20 @@ export default async function ArticleDetailPage({ params }: PageProps) {
             {title}
           </h1>
 
-          {/* 3. Meta Data (Penulis, Tanggal, & Views) */}
-          <div className="flex flex-wrap items-center justify-between gap-4 py-3 border-y-2 border-black text-xs font-mono text-gray-700 uppercase tracking-wider">
+          {/* 3. Meta Data Rapi (Penulis, Tanggal, & Views) */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3 border-y-2 border-black text-xs font-mono text-gray-700 uppercase tracking-wider my-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 bg-black text-white flex items-center justify-center font-black text-xs uppercase font-serif-heading shrink-0 rounded-none">
+              <div className="w-8 h-8 bg-black text-white flex items-center justify-center font-black text-xs uppercase font-serif-heading shrink-0 rounded-none">
                 {author.charAt(0)}
               </div>
-              <div>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                 <span className="font-black text-black">{author}</span>
-                <span className="text-red-800 font-bold text-[11px] ml-1.5">• TIM REDAKSI</span>
+                <span className="text-red-800 font-bold text-[11px]">• TIM REDAKSI</span>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 text-xs font-mono">
-              <div className="flex items-center gap-1.5 font-bold text-gray-700">
+            <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-gray-700">
+              <div className="flex items-center gap-1.5 font-bold">
                 <Calendar className="w-3.5 h-3.5 text-red-800" />
                 <span>{formattedDate}</span>
               </div>
@@ -275,7 +275,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
 
           {/* 4. Gambar Utama Selebar Penuh (w-full h-auto object-cover max-h-[400px]) */}
           {thumbnailUrl && (
-            <div className="space-y-2">
+            <div className="space-y-2 my-6">
               <div className="relative w-full border-2 border-black overflow-hidden bg-black rounded-none">
                 <img
                   src={thumbnailUrl}
@@ -290,7 +290,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
           )}
 
           {/* Share Bar */}
-          <div className="bg-black text-white border-2 border-black p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs rounded-none">
+          <div className="bg-black text-white border-2 border-black p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs rounded-none my-4">
             <span className="font-black uppercase tracking-widest flex items-center gap-1.5 font-mono text-red-400">
               <Share2 className="w-4 h-4 text-red-500" />
               Bagikan Berita:
@@ -315,9 +315,9 @@ export default async function ArticleDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* 5. Isi Berita (Kontainer ketat anti-tumpah & Tipografi HP Friendly) */}
+          {/* 5. Isi Berita (Terstruktur, Gambar & Iframe Terpaksa Responsif, Spacing Lega) */}
           <div
-            className="article-content w-full max-w-full overflow-hidden break-words whitespace-pre-wrap [&_img]:max-w-full [&_img]:h-auto [&_img]:object-contain [&_iframe]:max-w-full [&_figure]:max-w-full text-base sm:text-lg leading-relaxed text-black font-sans pt-2 space-y-4"
+            className="article-content w-full max-w-full overflow-hidden break-words whitespace-pre-wrap text-base md:text-lg text-gray-800 leading-loose [&_p]:mb-6 [&_img]:!max-w-full [&_img]:!w-full [&_img]:!h-auto [&_img]:!object-contain [&_img]:rounded-none [&_figure]:!max-w-full [&_figure]:!m-0 [&_iframe]:!max-w-full font-sans pt-4"
             dangerouslySetInnerHTML={{ __html: post.content?.rendered || '' }}
           />
 
@@ -382,7 +382,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
 
       {/* Recommendations Section (Visible on both desktop & mobile) */}
       {recentPosts.length > 0 && (
-        <section className="pt-10 border-t-2 border-black space-y-4 max-w-7xl mx-auto px-2 sm:px-4 font-sans">
+        <section className="pt-10 border-t-2 border-black space-y-4 max-w-7xl mx-auto px-4 font-sans">
           <div className="flex items-center gap-2">
             <span className="w-3 h-5 bg-red-800 inline-block" />
             <h3 className="text-xl font-black text-black uppercase tracking-tight font-serif-heading">
