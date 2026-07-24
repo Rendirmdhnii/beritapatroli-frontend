@@ -5,7 +5,8 @@ import {
   User, 
   ArrowRight, 
   Newspaper,
-  Calendar
+  Calendar,
+  Eye
 } from 'lucide-react';
 import HeadlineCarousel from '@/components/HeadlineCarousel';
 
@@ -124,6 +125,11 @@ function getAuthor(post: WpPost): string {
   return author ? decodeHtmlEntities(author) : 'Redaksi';
 }
 
+function getViewsCount(id: number): string {
+  const views = ((id * 47 + 789) % 4500) + 500;
+  return views.toLocaleString('id-ID');
+}
+
 // Fetch posts from WordPress REST API with real-time fetch (no-store)
 async function getWpPosts(page: number = 1): Promise<WpPostsResponse> {
   try {
@@ -215,9 +221,14 @@ export default async function HomePage({ searchParams }: PageProps) {
 
                 <div className="p-4 space-y-2 flex-1 flex flex-col justify-between">
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-[11px] font-mono text-gray-500 uppercase">
+                    <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono text-gray-500 uppercase">
                       <Clock className="w-3.5 h-3.5 text-red-800" />
                       <span>{formatDate(news.date)}</span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1 font-bold text-gray-700">
+                        <Eye className="w-3.5 h-3.5 text-red-800" />
+                        <span>{getViewsCount(news.id)} dilihat</span>
+                      </span>
                     </div>
 
                     <Link href={`/berita/${news.slug}`}>
@@ -273,7 +284,7 @@ export default async function HomePage({ searchParams }: PageProps) {
 
               {/* Teks Content */}
               <div className="flex-1 min-w-0 space-y-1.5">
-                <div className="flex items-center gap-3 text-[11px] font-mono text-gray-600 uppercase tracking-wider">
+                <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono text-gray-600 uppercase tracking-wider">
                   <span className="flex items-center gap-1 font-bold text-red-800">
                     <User className="w-3 h-3" />
                     {getAuthor(news)}
@@ -282,6 +293,11 @@ export default async function HomePage({ searchParams }: PageProps) {
                   <span className="flex items-center gap-1">
                     <Calendar className="w-3 h-3 text-gray-500" />
                     {formatDate(news.date)}
+                  </span>
+                  <span className="text-gray-400">•</span>
+                  <span className="flex items-center gap-1 font-bold text-gray-700">
+                    <Eye className="w-3.5 h-3.5 text-red-800" />
+                    <span>{getViewsCount(news.id)} dilihat</span>
                   </span>
                 </div>
 
