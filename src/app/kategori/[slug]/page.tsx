@@ -1,11 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { 
-  Clock, 
   User, 
-  Flame, 
   TrendingUp, 
   ArrowRight, 
   Folder,
@@ -35,6 +32,7 @@ interface WpMedia {
   media_details?: {
     sizes?: {
       medium?: WpMediaSize;
+      medium_large?: WpMediaSize;
       full?: WpMediaSize;
     };
   };
@@ -112,13 +110,14 @@ function getThumbnailUrl(post: WpPost): string {
     return 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=800&q=80';
   }
   return (
+    media.media_details?.sizes?.medium_large?.source_url ||
     media.media_details?.sizes?.medium?.source_url ||
     media.source_url ||
     'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=800&q=80'
   );
 }
 
-function getCategory(post: WpPost, fallbackName: string): string {
+function getCategoryNameFromPost(post: WpPost, fallbackName: string): string {
   const category = post._embedded?.['wp:term']?.[0]?.[0]?.name;
   return category ? decodeHtmlEntities(category) : fallbackName;
 }
@@ -128,8 +127,8 @@ function getAuthor(post: WpPost): string {
   return author ? decodeHtmlEntities(author) : 'Redaksi';
 }
 
-// ================= FETCH TAHAP 1: Dapatkan ID & Info Kategori dari Slug URL =================
-async function getWpCategoryBySlug(slug: string): Promise<WpCategory | null> {
+// ================= FETCH CATEGORY BY SLUG =================
+async function getCategory(slug: string): Promise<WpCategory | null> {
   try {
     const res = await fetch(
       `https://beritapatroli.co.id/wp-json/wp/v2/categories?slug=${encodeURIComponent(slug)}`,
@@ -139,22 +138,22 @@ async function getWpCategoryBySlug(slug: string): Promise<WpCategory | null> {
     const categoriesList: WpCategory[] = await res.json();
     return categoriesList && categoriesList.length > 0 ? categoriesList[0] : null;
   } catch (error) {
-    console.error('Error fetching WP category by slug (Tahap 1):', error);
+    console.error('Error fetching category by slug:', error);
     return null;
   }
 }
 
-// ================= FETCH TAHAP 2: Ambil Daftar Berita Berdasarkan ID Angka Kategori =================
-async function getWpPostsByCategoryId(categoryId: number): Promise<WpPost[]> {
+// ================= FETCH POSTS BY CATEGORY ID =================
+async function getPostsByCategory(categoryId: number): Promise<WpPost[]> {
   try {
     const res = await fetch(
-      `https://beritapatroli.co.id/wp-json/wp/v2/posts?categories=${categoryId}&_embed`,
+      `https://beritapatroli.co.id/wp-json/wp/v2/posts?categories=${categoryId}&_embed&per_page=12`,
       { next: { revalidate: 60 } }
     );
     if (!res.ok) return [];
     return await res.json();
   } catch (error) {
-    console.error('Error fetching WP posts by category ID (Tahap 2):', error);
+    console.error('Error fetching posts by category ID:', error);
     return [];
   }
 }
@@ -175,11 +174,11 @@ async function getWpRecentPosts(): Promise<WpPost[]> {
 // Dynamic Metadata Generation
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const category = await getWpCategoryBySlug(slug);
+  const category = await getCategory(slug);
 
   if (!category) {
     return {
-      title: 'Kategori Berita Tidak Ditemukan - Berita Patroli',
+      title: 'Informasi Kategori - Berita Patroli',
     };
   }
 
@@ -194,314 +193,217 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function CategoryPage({ params }: PageProps) {
   const { slug } = await params;
 
-  // FETCH TAHAP 1: Ambil data kategori dari slug URL
-  const category = await getWpCategoryBySlug(slug);
+  // Tangkap kategori dari slug URL
+  const category = await getCategory(slug);
 
+  // Jika kategori tidak ditemukan (array kosong), JANGAN panggil notFound(). Tampilkan UI rapi anti-404.
   if (!category) {
-    notFound();
+    return (
+      <div className="py-20 px-4 text-center space-y-6 bg-white border-2 border-black rounded-none my-8 max-w-4xl mx-auto font-sans">
+        <div className="w-16 h-16 bg-red-950 text-red-500 border-2 border-black flex items-center justify-center mx-auto rounded-none">
+          <Newspaper className="w-8 h-8" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-xl sm:text-2xl font-black text-black uppercase tracking-tight font-serif-heading">
+            Informasi Kategori
+          </h2>
+          <p className="text-gray-700 text-sm sm:text-base max-w-xl mx-auto font-sans">
+            Kategori tidak ditemukan atau sedang dimuat.
+          </p>
+        </div>
+        <div>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 bg-red-800 hover:bg-black text-white font-black text-xs px-6 py-3 uppercase tracking-wider rounded-none border border-black transition"
+          >
+            <span>Kembali ke Beranda</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </div>
+    );
   }
 
-  // FETCH TAHAP 2 & Sidebar: Ambil berita kategori berdasarkan ID & berita terkini
+  // Jika kategori ditemukan, ambil ID-nya dan panggil getPostsByCategory(category.id)
   const [posts, recentPosts] = await Promise.all([
-    getWpPostsByCategoryId(category.id),
+    getPostsByCategory(category.id),
     getWpRecentPosts(),
   ]);
 
   const categoryName = decodeHtmlEntities(category.name);
-  const mainHeadline = posts[0];
-  const sideHeadlines = posts.slice(1, 4);
-  const remainingNews = posts.slice(4);
 
   return (
-    <div className="space-y-10 pb-12">
+    <div className="space-y-10 pb-16 font-sans">
       {/* Breadcrumb Navigation */}
-      <nav className="flex items-center gap-2 text-xs text-slate-500 overflow-x-auto pb-1">
-        <Link href="/" className="hover:text-[#990000] font-semibold transition shrink-0">
+      <nav className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-gray-500 overflow-x-auto pb-1">
+        <Link href="/" className="hover:text-red-800 font-bold transition shrink-0">
           Beranda
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-        <span className="text-slate-400 font-medium">Kategori</span>
-        <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-        <span className="text-[#111111] font-bold">{categoryName}</span>
+        <ChevronRight className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+        <span className="text-gray-400">Kategori</span>
+        <ChevronRight className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+        <span className="text-black font-black">{categoryName}</span>
       </nav>
 
-      {/* Category Header Banner - Flat Newspaper Style */}
-      <div className="bg-[#111111] text-white border-l-4 border-[#990000] border-y border-r border-zinc-800 p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Category Header Banner - Industrial Legal Investigation Style */}
+      <div className="bg-black text-white border-l-8 border-red-800 border-2 border-black p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-none">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <span className="p-1 bg-[#990000] text-white">
+            <span className="p-1.5 bg-red-800 text-white rounded-none">
               <Folder className="w-4 h-4" />
             </span>
-            <span className="text-xs font-bold uppercase tracking-wider text-red-400 font-sans">
-              Kategori Berita
+            <span className="text-xs font-black uppercase tracking-widest text-red-500 font-mono">
+              KATEGORI HUKUM & INVESTIGASI
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight font-serif-heading">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight font-serif-heading uppercase text-white">
             {categoryName}
           </h1>
           {category.description && (
-            <p className="text-zinc-300 text-xs sm:text-sm max-w-2xl leading-relaxed">
+            <p className="text-gray-300 text-xs sm:text-sm max-w-2xl leading-relaxed">
               {category.description}
             </p>
           )}
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 px-4 py-2 text-center shrink-0">
-          <p className="text-2xl font-extrabold text-white font-serif-heading">{posts.length}</p>
-          <p className="text-[10px] text-zinc-400 font-medium uppercase tracking-wider">Artikel Berita</p>
+        <div className="bg-zinc-900 border-2 border-black px-5 py-3 text-center shrink-0 rounded-none">
+          <p className="text-3xl font-black text-white font-serif-heading">{posts.length}</p>
+          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest font-mono">Artikel Ditemukan</p>
         </div>
       </div>
 
       {posts.length === 0 ? (
-        <div className="bg-white border border-gray-200 p-12 text-center space-y-4">
-          <div className="w-16 h-16 bg-red-50 text-[#990000] border border-red-200 flex items-center justify-center mx-auto">
+        <div className="bg-white border-2 border-black p-12 text-center space-y-4 rounded-none">
+          <div className="w-16 h-16 bg-red-950 text-red-500 border border-black flex items-center justify-center mx-auto rounded-none">
             <Newspaper className="w-8 h-8" />
           </div>
-          <h3 className="text-lg font-bold text-[#111111] font-serif-heading">
-            Belum ada berita untuk kategori {categoryName}
+          <h3 className="text-lg font-black text-black uppercase tracking-tight font-serif-heading">
+            Belum Ada Berita Untuk Kategori {categoryName}
           </h3>
-          <p className="text-slate-500 text-xs max-w-md mx-auto">
-            Silakan kembali ke halaman utama untuk membaca berita terkini lainnya.
+          <p className="text-gray-700 text-xs max-w-md mx-auto">
+            Silakan kembali ke halaman utama untuk membaca berita dan arsip kriminal terkini lainnya.
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 bg-[#990000] hover:bg-[#800000] text-white font-bold text-xs px-5 py-2.5 transition uppercase tracking-wider"
+            className="inline-flex items-center gap-2 bg-red-800 hover:bg-black text-white font-black text-xs px-5 py-2.5 transition uppercase tracking-wider rounded-none"
           >
             <span>Kembali ke Beranda</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       ) : (
-        <>
-          {/* ================= HERO SECTION / HEADLINE ================= */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between border-b-2 border-[#990000] pb-2">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left Column: Grid Investigasi Posts (8 Cols) */}
+          <div className="lg:col-span-8 space-y-6">
+            <div className="bg-black text-white p-3 border-b-4 border-red-800 flex items-center justify-between rounded-none">
               <div className="flex items-center gap-2">
-                <span className="p-1 bg-[#990000] text-white">
-                  <Flame className="w-4 h-4" />
-                </span>
-                <h2 className="text-xl font-extrabold text-[#111111] uppercase tracking-tight font-serif-heading">
-                  Headline {categoryName}
+                <span className="w-3 h-3 bg-red-800 inline-block" />
+                <h2 className="text-base sm:text-lg font-black uppercase tracking-widest font-serif-heading">
+                  Arsip Berita {categoryName}
                 </h2>
               </div>
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:block">
-                Berita Populer Kategori
+              <span className="text-xs font-mono text-gray-400 uppercase tracking-widest hidden sm:inline-block">
+                {posts.length} Berita Terbit
               </span>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Main Headline Card */}
-              {mainHeadline && (
-                <div className="lg:col-span-8 group relative bg-white border border-gray-200 overflow-hidden">
-                  <div className="relative h-[340px] sm:h-[440px] w-full overflow-hidden bg-black">
+            {/* Dense List View with border-b-2 border-black */}
+            <div className="divide-y-2 divide-black border-t-2 border-b-2 border-black bg-white rounded-none">
+              {posts.map((news) => (
+                <article
+                  key={news.id}
+                  className="py-4 px-2 sm:px-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center hover:bg-zinc-100 transition group rounded-none"
+                >
+                  {/* Thumbnail Gambar */}
+                  <div className="w-full sm:w-44 h-32 shrink-0 bg-black border-2 border-black overflow-hidden relative rounded-none">
                     <img
-                      src={getThumbnailUrl(mainHeadline)}
-                      alt={decodeHtmlEntities(mainHeadline.title.rendered)}
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-700 opacity-90"
+                      src={getThumbnailUrl(news)}
+                      alt={decodeHtmlEntities(news.title.rendered)}
+                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-90 rounded-none"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+                    <span className="absolute top-1 left-1 bg-black text-white text-[9px] font-black px-1.5 py-0.5 uppercase tracking-wider rounded-none border border-zinc-700">
+                      {getCategoryNameFromPost(news, categoryName)}
+                    </span>
+                  </div>
 
-                    {/* Badges */}
-                    <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-                      <span className="bg-[#990000] text-white text-[11px] font-extrabold px-3 py-1 uppercase tracking-wider flex items-center gap-1">
-                        <Flame className="w-3.5 h-3.5" />
-                        Headline
+                  {/* Content Teks */}
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="flex items-center gap-3 text-[11px] font-mono text-gray-600 uppercase tracking-wider">
+                      <span className="flex items-center gap-1 font-bold text-red-800">
+                        <User className="w-3 h-3" />
+                        {getAuthor(news)}
                       </span>
-                      <span className="bg-[#111111] text-white text-[11px] font-semibold px-3 py-1 uppercase tracking-wider">
-                        {categoryName}
+                      <span className="text-gray-400">•</span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-gray-500" />
+                        {formatDate(news.date)}
                       </span>
                     </div>
 
-                    {/* Headline Text overlay */}
-                    <div className="absolute bottom-0 inset-x-0 p-6 sm:p-8 space-y-3">
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300">
-                        <span className="flex items-center gap-1 font-medium">
-                          <User className="w-3.5 h-3.5 text-red-400" />
-                          {getAuthor(mainHeadline)}
-                        </span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1 font-medium">
-                          <Calendar className="w-3.5 h-3.5 text-red-400" />
-                          {formatDate(mainHeadline.date)}
-                        </span>
-                      </div>
+                    <Link href={`/berita/${news.slug}`}>
+                      <h3 className="text-base sm:text-lg font-black text-black group-hover:text-red-800 transition leading-snug font-serif-heading uppercase line-clamp-2">
+                        {decodeHtmlEntities(news.title.rendered)}
+                      </h3>
+                    </Link>
 
-                      <Link href={`/berita/${mainHeadline.slug}`}>
-                        <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white leading-tight hover:text-red-400 transition line-clamp-2 font-serif-heading">
-                          {decodeHtmlEntities(mainHeadline.title.rendered)}
-                        </h2>
+                    <p className="text-xs sm:text-sm text-gray-700 line-clamp-2 leading-relaxed font-sans">
+                      {stripHtmlTags(news.excerpt.rendered)}
+                    </p>
+
+                    <div className="pt-1">
+                      <Link
+                        href={`/berita/${news.slug}`}
+                        className="inline-flex items-center gap-1 text-red-800 hover:text-black font-black text-[11px] uppercase tracking-wider transition"
+                      >
+                        <span>Baca Kasus Lengkap</span>
+                        <ArrowRight className="w-3 h-3" />
                       </Link>
-
-                      <p className="text-slate-300 text-sm line-clamp-2 leading-relaxed hidden sm:block">
-                        {stripHtmlTags(mainHeadline.excerpt.rendered)}
-                      </p>
                     </div>
                   </div>
-                </div>
-              )}
-
-              {/* Side Headlines List */}
-              <div className="lg:col-span-4 flex flex-col justify-between space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600 px-1 font-serif-heading">
-                  Berita Terkait {categoryName}
-                </h3>
-                <div className="space-y-3 flex-1 flex flex-col justify-between">
-                  {sideHeadlines.map((news) => (
-                    <div
-                      key={news.id}
-                      className="bg-white border border-gray-200 p-3 flex gap-3 hover:border-[#990000] transition group"
-                    >
-                      <div className="w-24 h-24 sm:w-28 sm:h-24 overflow-hidden shrink-0 relative bg-gray-100 border border-gray-200">
-                        <img
-                          src={getThumbnailUrl(news)}
-                          alt={decodeHtmlEntities(news.title.rendered)}
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                        />
-                      </div>
-
-                      <div className="flex flex-col justify-between flex-1 min-w-0">
-                        <div className="space-y-1">
-                          <span className="inline-block text-[10px] font-bold text-[#990000] uppercase tracking-wider">
-                            {getCategory(news, categoryName)}
-                          </span>
-                          <Link href={`/berita/${news.slug}`}>
-                            <h4 className="text-xs sm:text-sm font-bold text-[#111111] group-hover:text-[#990000] transition line-clamp-2 leading-snug font-serif-heading">
-                              {decodeHtmlEntities(news.title.rendered)}
-                            </h4>
-                          </Link>
-                        </div>
-
-                        <div className="flex items-center text-[11px] text-slate-500 mt-2">
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-slate-400" />
-                            {formatDate(news.date)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                </article>
+              ))}
             </div>
-          </section>
+          </div>
 
-          {/* ================= MAIN CONTENT & SIDEBAR ================= */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Left Column: News Grid (8 Cols) */}
-            <div className="lg:col-span-8 space-y-6">
-              <div className="flex items-center justify-between border-b-2 border-[#111111] pb-2">
+          {/* Right Column: Sidebar (4 Cols) */}
+          <aside className="lg:col-span-4 space-y-6">
+            <div className="bg-white border-2 border-black p-5 space-y-4 rounded-none">
+              <div className="flex items-center justify-between border-b-2 border-red-800 pb-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-5 bg-[#990000] inline-block" />
-                  <h3 className="text-xl font-extrabold text-[#111111] uppercase tracking-tight font-serif-heading">
-                    Daftar Berita {categoryName}
+                  <TrendingUp className="w-5 h-5 text-red-800" />
+                  <h3 className="text-base font-black text-black uppercase tracking-tight font-serif-heading">
+                    Berita Terkini
                   </h3>
                 </div>
-                <span className="text-xs font-semibold text-slate-500">
-                  {posts.length} Berita Ditemukan
+                <span className="text-[10px] font-bold bg-red-100 text-red-800 px-2 py-0.5 uppercase tracking-wider font-mono">
+                  Top 5
                 </span>
               </div>
 
-              {/* Grid Layout using Tailwind CSS with border-gray-200 */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {(remainingNews.length > 0 ? remainingNews : posts).map((news) => (
-                  <article
-                    key={news.id}
-                    className="bg-white border border-gray-200 overflow-hidden flex flex-col group hover:border-[#990000] transition duration-200"
-                  >
-                    {/* Thumbnail Image */}
-                    <div className="relative h-48 w-full overflow-hidden bg-gray-100 border-b border-gray-200">
-                      <img
-                        src={getThumbnailUrl(news)}
-                        alt={decodeHtmlEntities(news.title.rendered)}
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                      />
-                      <span className="absolute top-3 left-3 bg-[#111111] text-white text-[10px] font-bold px-2.5 py-1 uppercase tracking-wider">
-                        {getCategory(news, categoryName)}
+              <div className="space-y-4">
+                {recentPosts.map((news, index) => (
+                  <div key={news.id} className="flex gap-3.5 items-start group border-b border-gray-200 pb-3 last:border-b-0 last:pb-0">
+                    <span className="text-2xl font-black text-gray-400 group-hover:text-red-800 transition w-6 text-center shrink-0 leading-none font-serif-heading">
+                      0{index + 1}
+                    </span>
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <span className="text-[10px] font-black text-red-800 uppercase tracking-wider font-mono">
+                        {getCategoryNameFromPost(news, categoryName)}
                       </span>
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-xs text-slate-500">
-                          <span className="flex items-center gap-1">
-                            <User className="w-3 h-3 text-slate-400" />
-                            {getAuthor(news)}
-                          </span>
-                          <span>•</span>
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                            {formatDate(news.date)}
-                          </span>
-                        </div>
-
-                        <Link href={`/berita/${news.slug}`}>
-                          <h4 className="text-base font-bold text-[#111111] group-hover:text-[#990000] transition leading-snug line-clamp-2 font-serif-heading">
-                            {decodeHtmlEntities(news.title.rendered)}
-                          </h4>
-                        </Link>
-
-                        <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
-                          {stripHtmlTags(news.excerpt.rendered)}
-                        </p>
-                      </div>
-
-                      <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-[#990000] font-semibold">
-                        <Link
-                          href={`/berita/${news.slug}`}
-                          className="inline-flex items-center gap-1 hover:gap-2 transition-all uppercase text-[11px] tracking-wider font-bold"
-                        >
-                          <span>Baca Selengkapnya</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </Link>
+                      <Link href={`/berita/${news.slug}`}>
+                        <h4 className="text-xs sm:text-sm font-black text-black group-hover:text-red-800 transition line-clamp-2 leading-snug font-serif-heading uppercase">
+                          {decodeHtmlEntities(news.title.rendered)}
+                        </h4>
+                      </Link>
+                      <div className="flex items-center gap-2 text-[11px] text-gray-500 font-mono">
+                        <span>{formatDate(news.date)}</span>
                       </div>
                     </div>
-                  </article>
+                  </div>
                 ))}
               </div>
             </div>
-
-            {/* Right Column: Sidebar (4 Cols) */}
-            <aside className="lg:col-span-4 space-y-8">
-              {/* Trending / Terpopuler Widget */}
-              <div className="bg-white border border-gray-200 p-5 space-y-4">
-                <div className="flex items-center justify-between border-b-2 border-[#990000] pb-2">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-[#990000]" />
-                    <h3 className="text-base font-extrabold text-[#111111] uppercase tracking-tight font-serif-heading">
-                      Berita Terkini
-                    </h3>
-                  </div>
-                  <span className="text-[10px] font-bold bg-red-100 text-[#990000] px-2 py-0.5 uppercase tracking-wider">
-                    Top 5
-                  </span>
-                </div>
-
-                <div className="space-y-4">
-                  {recentPosts.map((news, index) => (
-                    <div key={news.id} className="flex gap-3.5 items-start group border-b border-gray-100 pb-3 last:border-b-0 last:pb-0">
-                      <span className="text-2xl font-black text-slate-300 group-hover:text-[#990000] transition w-6 text-center shrink-0 leading-none font-serif-heading">
-                        0{index + 1}
-                      </span>
-                      <div className="space-y-1 min-w-0 flex-1">
-                        <span className="text-[10px] font-bold text-[#990000] uppercase tracking-wider">
-                          {getCategory(news, categoryName)}
-                        </span>
-                        <Link href={`/berita/${news.slug}`}>
-                          <h4 className="text-xs sm:text-sm font-bold text-[#111111] group-hover:text-[#990000] transition line-clamp-2 leading-snug font-serif-heading">
-                            {decodeHtmlEntities(news.title.rendered)}
-                          </h4>
-                        </Link>
-                        <div className="flex items-center gap-2 text-[11px] text-slate-500">
-                          <span>{formatDate(news.date)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </aside>
-          </div>
-        </>
+          </aside>
+        </div>
       )}
     </div>
   );
