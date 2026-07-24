@@ -208,11 +208,12 @@ export default async function HomePage({ searchParams }: PageProps) {
                 key={news.id}
                 className="bg-white border-2 border-black flex flex-col justify-between hover:bg-zinc-50 transition group rounded-none"
               >
-                <div className="relative h-48 w-full overflow-hidden bg-black border-b-2 border-black rounded-none">
+                {/* Aspect 16/9 Ratio Image Container */}
+                <div className="relative w-full aspect-[16/9] overflow-hidden bg-black border-b-2 border-black rounded-none">
                   <img
                     src={getThumbnailUrl(news)}
                     alt={decodeHtmlEntities(news.title.rendered)}
-                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-90 rounded-none"
+                    className="w-full aspect-[16/9] object-cover object-center group-hover:scale-105 transition duration-500 opacity-90 rounded-none"
                   />
                   <span className="absolute top-2 left-2 bg-red-800 text-white text-[10px] font-black px-2 py-0.5 uppercase tracking-wider rounded-none">
                     {getCategory(news)}
@@ -270,12 +271,12 @@ export default async function HomePage({ searchParams }: PageProps) {
               key={news.id}
               className="py-4 px-2 sm:px-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center hover:bg-zinc-100 transition group rounded-none"
             >
-              {/* Thumbnail Gambar */}
-              <div className="w-full sm:w-44 h-32 shrink-0 bg-black border-2 border-black overflow-hidden relative rounded-none">
+              {/* Aspect 16/9 Ratio Thumbnail Gambar */}
+              <div className="w-full sm:w-48 aspect-[16/9] shrink-0 bg-black border-2 border-black overflow-hidden relative rounded-none">
                 <img
                   src={getThumbnailUrl(news)}
                   alt={decodeHtmlEntities(news.title.rendered)}
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-90 rounded-none"
+                  className="w-full aspect-[16/9] object-cover object-center group-hover:scale-105 transition duration-500 opacity-90 rounded-none"
                 />
                 <span className="absolute top-1 left-1 bg-black text-white text-[9px] font-black px-1.5 py-0.5 uppercase tracking-wider rounded-none border border-zinc-700">
                   {getCategory(news)}
