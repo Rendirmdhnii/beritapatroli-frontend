@@ -3,11 +3,11 @@ import Link from 'next/link';
 import { 
   Clock, 
   User, 
-  Flame, 
   ArrowRight, 
   Newspaper,
   Calendar
 } from 'lucide-react';
+import HeadlineCarousel from '@/components/HeadlineCarousel';
 
 interface PageProps {
   searchParams: Promise<{ page?: string }>;
@@ -172,63 +172,14 @@ export default async function HomePage({ searchParams }: PageProps) {
   }
 
   const isFirstPage = currentPage === 1;
-  const mainHeadline = isFirstPage ? posts[0] : null;
   const secondaryHeadlines = isFirstPage ? posts.slice(1, 4) : [];
   const remainingNews = isFirstPage ? posts.slice(4) : posts;
 
   return (
     <div className="space-y-10 pb-16 font-sans">
       
-      {/* ================= 1. FULL-WIDTH HEADLINE BANNER (HALAMAN 1 SAJA) ================= */}
-      {isFirstPage && mainHeadline && (
-        <section className="relative w-full bg-black border-b-4 border-black overflow-hidden rounded-none">
-          <div className="relative h-[420px] sm:h-[520px] lg:h-[600px] w-full">
-            <img
-              src={getThumbnailUrl(mainHeadline)}
-              alt={decodeHtmlEntities(mainHeadline.title.rendered)}
-              className="w-full h-full object-cover opacity-75 rounded-none"
-            />
-            {/* Dark gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/30" />
-
-            {/* Top Badges */}
-            <div className="absolute top-4 left-4 sm:top-6 sm:left-6 flex flex-wrap gap-2 z-10">
-              <span className="bg-red-800 text-white text-xs font-black px-3 py-1 uppercase tracking-widest rounded-none border border-red-600 flex items-center gap-1.5">
-                <Flame className="w-4 h-4 text-yellow-400" />
-                HEADLINE INVESTIGASI
-              </span>
-              <span className="bg-black/90 text-white text-xs font-bold px-3 py-1 uppercase tracking-wider rounded-none border border-zinc-700">
-                {getCategory(mainHeadline)}
-              </span>
-            </div>
-
-            {/* Content Overlay */}
-            <div className="absolute bottom-0 inset-x-0 p-6 sm:p-10 lg:p-12 space-y-4 max-w-6xl">
-              <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-gray-300 uppercase tracking-widest">
-                <span className="flex items-center gap-1.5 font-bold text-red-500">
-                  <User className="w-4 h-4" />
-                  {getAuthor(mainHeadline)}
-                </span>
-                <span className="text-zinc-600">•</span>
-                <span className="flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-gray-400" />
-                  {formatDate(mainHeadline.date)}
-                </span>
-              </div>
-
-              <Link href={`/berita/${mainHeadline.slug}`} className="block group">
-                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-none tracking-tight hover:text-red-400 transition font-serif-heading uppercase line-clamp-3">
-                  {decodeHtmlEntities(mainHeadline.title.rendered)}
-                </h1>
-              </Link>
-
-              <p className="text-gray-300 text-sm sm:text-base line-clamp-3 leading-relaxed max-w-4xl font-normal hidden sm:block border-l-2 border-red-800 pl-4 bg-black/40 py-1">
-                {stripHtmlTags(mainHeadline.excerpt.rendered)}
-              </p>
-            </div>
-          </div>
-        </section>
-      )}
+      {/* ================= 1. AUTO-SLIDER HEADLINE CAROUSEL (HALAMAN 1 SAJA) ================= */}
+      {isFirstPage && <HeadlineCarousel posts={posts} />}
 
       {/* ================= 2. GRID INVESTIGASI SEKUNDER (HALAMAN 1 SAJA) ================= */}
       {isFirstPage && secondaryHeadlines.length > 0 && (
