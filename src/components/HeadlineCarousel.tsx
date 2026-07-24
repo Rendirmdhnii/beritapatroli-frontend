@@ -182,7 +182,7 @@ export default function HeadlineCarousel({ posts }: HeadlineCarouselProps) {
         </div>
 
         {/* Content Overlay - Title & Excerpt */}
-        <div className="absolute bottom-0 inset-x-0 p-6 sm:p-8 lg:p-10 space-y-2 z-10 max-w-5xl">
+        <div className="absolute bottom-6 sm:bottom-8 inset-x-0 p-6 sm:p-8 lg:p-10 space-y-2 z-10 max-w-5xl">
           <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-gray-300 uppercase tracking-widest">
             <span className="flex items-center gap-1.5 font-bold text-red-500">
               <User className="w-4 h-4" />
@@ -206,18 +206,18 @@ export default function HeadlineCarousel({ posts }: HeadlineCarouselProps) {
           </p>
         </div>
 
-        {/* Dots Indicator di Pojok Kanan Bawah */}
-        <div className="absolute bottom-6 right-6 sm:bottom-8 sm:right-8 flex items-center gap-2 z-20">
-          {topPosts.map((_, idx) => (
+        {/* Dots Indicator Sakti - Always Visible on All Devices (HP & Desktop) */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3 z-50">
+          {topPosts.map((_, index) => (
             <button
-              key={idx}
-              onClick={() => setCurrentIndex(idx)}
-              className={`w-3 h-3 transition-all rounded-none cursor-pointer border ${
-                idx === currentIndex
-                  ? 'bg-red-800 border-red-500 w-6'
-                  : 'bg-gray-500 border-gray-600 hover:bg-gray-300'
-              }`}
-              aria-label={`Slide ${idx + 1}`}
+              key={index}
+              onClick={() => setCurrentIndex(index)}
+              className={
+                index === currentIndex
+                  ? 'w-3 h-3 bg-red-600 rounded-full transition-all border border-red-500 cursor-pointer'
+                  : 'w-3 h-3 bg-white/50 hover:bg-white rounded-full transition-all border border-black/30 cursor-pointer'
+              }
+              aria-label={`Go to slide ${index + 1}`}
             />
           ))}
         </div>
