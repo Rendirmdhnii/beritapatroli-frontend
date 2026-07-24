@@ -12,6 +12,8 @@ import {
   Eye
 } from 'lucide-react';
 
+export const revalidate = 0;
+
 interface PageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ page?: string }>;
@@ -179,7 +181,7 @@ async function getCategory(slug: string): Promise<WpCategory | null> {
   try {
     const res = await fetch(
       `https://beritapatroli.co.id/wp-json/wp/v2/categories?slug=${encodeURIComponent(slug)}`,
-      { next: { revalidate: 300 } }
+      { cache: 'no-store' }
     );
     if (!res.ok) return null;
     const categoriesList: WpCategory[] = await res.json();
@@ -195,7 +197,7 @@ async function getPostsByCategory(categoryId: number, page: number = 1): Promise
   try {
     const res = await fetch(
       `https://beritapatroli.co.id/wp-json/wp/v2/posts?categories=${categoryId}&_embed&per_page=12&page=${page}`,
-      { next: { revalidate: 60 } }
+      { cache: 'no-store' }
     );
     if (!res.ok) {
       return { posts: [], totalPages: 1 };
@@ -215,7 +217,7 @@ async function getPostsByCategory(categoryId: number, page: number = 1): Promise
 async function getWpRecentPosts(): Promise<WpPost[]> {
   try {
     const res = await fetch('https://beritapatroli.co.id/wp-json/wp/v2/posts?_embed&per_page=5', {
-      next: { revalidate: 60 },
+      cache: 'no-store',
     });
     if (!res.ok) return [];
     return await res.json();

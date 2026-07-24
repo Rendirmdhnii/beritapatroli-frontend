@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import HeadlineCarousel from '@/components/HeadlineCarousel';
 
+export const revalidate = 0;
+
 interface PageProps {
   searchParams: Promise<{ page?: string }>;
 }
@@ -122,11 +124,11 @@ function getAuthor(post: WpPost): string {
   return author ? decodeHtmlEntities(author) : 'Redaksi';
 }
 
-// Fetch posts from WordPress REST API with page parameter
+// Fetch posts from WordPress REST API with real-time fetch (no-store)
 async function getWpPosts(page: number = 1): Promise<WpPostsResponse> {
   try {
     const res = await fetch(`https://beritapatroli.co.id/wp-json/wp/v2/posts?_embed&per_page=12&page=${page}`, {
-      next: { revalidate: 60 },
+      cache: 'no-store',
     });
 
     if (!res.ok) {

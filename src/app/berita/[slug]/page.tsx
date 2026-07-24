@@ -12,6 +12,8 @@ import {
   Eye
 } from 'lucide-react';
 
+export const revalidate = 0;
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
@@ -128,12 +130,12 @@ function getViewsCount(id: number): string {
   return views.toLocaleString('id-ID');
 }
 
-// Fetch single post by slug from WordPress REST API
+// Fetch single post by slug from WordPress REST API (real-time no-store)
 async function getWpPostBySlug(slug: string): Promise<WpPost | null> {
   try {
     const res = await fetch(
       `https://beritapatroli.co.id/wp-json/wp/v2/posts?slug=${encodeURIComponent(slug)}&_embed`,
-      { next: { revalidate: 60 } }
+      { cache: 'no-store' }
     );
 
     if (!res.ok) {
@@ -152,7 +154,7 @@ async function getWpPostBySlug(slug: string): Promise<WpPost | null> {
 async function getRecentWpPosts(currentSlug: string): Promise<WpPost[]> {
   try {
     const res = await fetch('https://beritapatroli.co.id/wp-json/wp/v2/posts?_embed&per_page=6', {
-      next: { revalidate: 60 },
+      cache: 'no-store',
     });
     if (!res.ok) return [];
     const posts: WpPost[] = await res.json();
