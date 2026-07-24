@@ -9,7 +9,9 @@ import {
   Flame, 
   ArrowLeft,
   User,
-  Eye
+  Eye,
+  MessageCircle,
+  Link2
 } from 'lucide-react';
 
 export const revalidate = 0;
@@ -62,6 +64,23 @@ interface WpPost {
     'wp:featuredmedia'?: WpMedia[];
     'wp:term'?: WpTerm[][];
   };
+}
+
+// Social Media Icons SVGs
+function FacebookIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg fill="currentColor" viewBox="0 0 24 24" {...props}>
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+    </svg>
+  );
+}
+
+function TwitterIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg fill="currentColor" viewBox="0 0 24 24" {...props}>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    </svg>
+  );
 }
 
 // Helpers for decoding WP REST API strings
@@ -240,7 +259,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
       {/* Main Grid: Article Column & Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start max-w-7xl mx-auto px-0 md:px-4 w-full max-w-full">
         
-        {/* ================= MAIN ARTICLE (BERSIH DI MOBILE, LATAR PUTIH, TANPA BORDER KAKU ON MOBILE) ================= */}
+        {/* ================= MAIN ARTICLE ================= */}
         <article className="lg:col-span-8 bg-white border-0 md:border-2 md:border-black space-y-6 max-w-3xl mx-auto w-full max-w-full rounded-none px-4 md:px-8 py-2 md:py-8">
           
           {/* 1. Kategori Badge */}
@@ -295,33 +314,59 @@ export default async function ArticleDetailPage({ params }: PageProps) {
             </div>
           )}
 
-          {/* Share Bar */}
-          <div className="bg-black text-white border-2 border-black p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs rounded-none my-4">
+          {/* Clean Share Bar: Minimalist Icon-Only Buttons */}
+          <div className="bg-black text-white border-2 border-black p-3 flex items-center justify-between gap-3 text-xs rounded-none my-4">
             <span className="font-black uppercase tracking-widest flex items-center gap-1.5 font-mono text-red-400">
               <Share2 className="w-4 h-4 text-red-500" />
               Bagikan Berita:
             </span>
+            
+            {/* Deretan Ikon-Sahaja Minimalis & UX-Friendly (WhatsApp, Facebook, Twitter, Link) */}
             <div className="flex items-center gap-2">
               <a
-                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(title)}`}
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(title + ' ' + post.link)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-1.5 font-bold uppercase tracking-wider transition rounded-none text-[11px]"
+                aria-label="Bagikan ke WhatsApp"
+                title="Bagikan ke WhatsApp"
+                className="w-9 h-9 bg-emerald-700 hover:bg-emerald-800 text-white flex items-center justify-center transition rounded-none border border-emerald-600 shrink-0"
               >
-                <span>WhatsApp</span>
+                <MessageCircle className="w-4 h-4" />
               </a>
               <a
                 href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(post.link)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="bg-blue-800 hover:bg-blue-900 text-white px-3 py-1.5 font-bold uppercase tracking-wider transition rounded-none text-[11px]"
+                aria-label="Bagikan ke Facebook"
+                title="Bagikan ke Facebook"
+                className="w-9 h-9 bg-blue-800 hover:bg-blue-900 text-white flex items-center justify-center transition rounded-none border border-blue-700 shrink-0"
               >
-                <span>Facebook</span>
+                <FacebookIcon className="w-4 h-4" />
+              </a>
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(post.link)}`}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Bagikan ke Twitter"
+                title="Bagikan ke Twitter / X"
+                className="w-9 h-9 bg-zinc-900 hover:bg-red-800 text-white flex items-center justify-center transition rounded-none border border-zinc-700 shrink-0"
+              >
+                <TwitterIcon className="w-4 h-4" />
+              </a>
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(title + ' ' + post.link)}`}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Bagikan Berita"
+                title="Salin / Bagikan Link Berita"
+                className="w-9 h-9 bg-red-800 hover:bg-black text-white flex items-center justify-center transition rounded-none border border-red-700 shrink-0"
+              >
+                <Link2 className="w-4 h-4" />
               </a>
             </div>
           </div>
 
-          {/* 5. SUNTIKKAN CSS PEMBUNUH & CONTAINER SUPER AMAN (OPSI NUKLIR) */}
+          {/* 5. JURUS PAMUNGKAS SAKTI CSS MURNI & WP-CONTENT DIV */}
           <style>{`
             .wp-content { max-width: 100vw !important; overflow-x: hidden !important; }
             .wp-content * { max-width: 100% !important; box-sizing: border-box !important; }
@@ -338,14 +383,6 @@ export default async function ArticleDetailPage({ params }: PageProps) {
             className="w-full max-w-[100vw] overflow-x-hidden px-4 md:px-0 break-words whitespace-pre-wrap wp-content text-base md:text-lg text-gray-800 leading-loose [&_p]:mb-6 font-sans pt-4"
             dangerouslySetInnerHTML={{ __html: cleanContent }}
           />
-
-          {/* Disclaimer & Editor Footer */}
-          <div className="bg-zinc-100 border-l-8 border-red-800 border-2 border-black p-4 text-xs text-gray-800 space-y-1.5 mt-8 rounded-none font-sans">
-            <p className="font-black text-black uppercase tracking-wider font-mono">Pedoman Pers & Disclaimer Redaksi:</p>
-            <p className="leading-relaxed">
-              Seluruh isi berita dilaporkan sesuai fakta dan pedoman pers independen. Dilarang mengutip atau mendistribusikan ulang tanpa mencantumkan sumber resmi <strong>Berita Patroli</strong>.
-            </p>
-          </div>
 
           {/* Navigation Back */}
           <div className="pt-6 border-t-2 border-black flex justify-between items-center">

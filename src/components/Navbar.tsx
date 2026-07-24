@@ -1,33 +1,55 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   Search, 
   Menu, 
   X, 
-  Calendar, 
   ChevronRight
 } from 'lucide-react';
 import { categories } from '@/data/categories';
 
+// Social Media Icons SVGs
+function FacebookIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg fill="currentColor" viewBox="0 0 24 24" {...props}>
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+    </svg>
+  );
+}
+
+function TwitterIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg fill="currentColor" viewBox="0 0 24 24" {...props}>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    </svg>
+  );
+}
+
+function InstagramIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" {...props}>
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+    </svg>
+  );
+}
+
+function YoutubeIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg fill="currentColor" viewBox="0 0 24 24" {...props}>
+      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+    </svg>
+  );
+}
+
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentDate, setCurrentDate] = useState('');
   const pathname = usePathname();
-
-  useEffect(() => {
-    const now = new Date();
-    const options: Intl.DateTimeFormatOptions = { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    };
-    setCurrentDate(now.toLocaleDateString('id-ID', options));
-  }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,19 +61,49 @@ export default function Navbar() {
 
   return (
     <header className="w-full bg-white border-b-2 border-black font-sans">
-      {/* ================= TINGKAT ATAS (TOP TIER: DATE - GAGAH IMAGE LOGO - SEARCH) ================= */}
+      {/* ================= TINGKAT ATAS (TOP TIER: SOCIAL ICONS - GAGAH LOGO - SEARCH) ================= */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 border-b border-gray-200">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
           
-          {/* Left Column: Date Today */}
-          <div className="hidden md:flex md:col-span-3 items-center gap-2 text-xs font-mono text-gray-700 uppercase tracking-wider">
-            <div className="p-2 bg-red-800 text-white rounded-none">
-              <Calendar className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Edisi Hari Ini</p>
-              <p className="font-bold text-black">{currentDate || 'Sabtu, 25 Juli 2026'}</p>
-            </div>
+          {/* Left Column: Deretan Ikon Sosmed di Header (Desktop) */}
+          <div className="hidden md:flex md:col-span-3 items-center gap-2 text-xs font-mono uppercase tracking-wider">
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-1">IKUTI KAMI:</span>
+            <a
+              href="https://facebook.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook"
+              className="p-2 bg-black text-white hover:bg-red-800 transition border border-black rounded-none"
+            >
+              <FacebookIcon className="w-4 h-4" />
+            </a>
+            <a
+              href="https://twitter.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Twitter"
+              className="p-2 bg-black text-white hover:bg-red-800 transition border border-black rounded-none"
+            >
+              <TwitterIcon className="w-4 h-4" />
+            </a>
+            <a
+              href="https://instagram.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              className="p-2 bg-black text-white hover:bg-red-800 transition border border-black rounded-none"
+            >
+              <InstagramIcon className="w-4 h-4" />
+            </a>
+            <a
+              href="https://youtube.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="YouTube"
+              className="p-2 bg-black text-white hover:bg-red-800 transition border border-black rounded-none"
+            >
+              <YoutubeIcon className="w-4 h-4" />
+            </a>
           </div>
 
           {/* Center Column: Official Logo Image (/lgberitapatroli.jpg) Gagah Size */}
@@ -93,12 +145,12 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-13">
             
-            {/* Desktop Category Menu Items */}
-            <ul className="hidden md:flex items-center space-x-1 text-xs font-bold uppercase tracking-wider h-full">
+            {/* Desktop Category Menu Items (Expanded Rubrik) */}
+            <ul className="hidden md:flex items-center space-x-1 text-xs font-bold uppercase tracking-wider h-full overflow-x-auto">
               <li>
                 <Link
                   href="/"
-                  className={`px-4 h-13 inline-flex items-center gap-2 transition uppercase font-bold tracking-wider border-b-4 ${
+                  className={`px-3.5 h-13 inline-flex items-center gap-2 transition uppercase font-bold tracking-wider border-b-4 ${
                     pathname === '/'
                       ? 'bg-red-950 text-white border-white'
                       : 'text-white border-transparent hover:border-white hover:bg-red-900'
@@ -114,7 +166,7 @@ export default function Navbar() {
                   <li key={cat.name} className="h-full">
                     <Link
                       href={cat.href}
-                      className={`px-4 h-13 inline-flex items-center gap-1.5 transition uppercase font-bold tracking-wider border-b-4 ${
+                      className={`px-3.5 h-13 inline-flex items-center gap-1.5 transition uppercase font-bold tracking-wider border-b-4 ${
                         isActive
                           ? 'bg-red-950 text-white border-white'
                           : 'text-white border-transparent hover:border-white hover:bg-red-900'
@@ -128,12 +180,49 @@ export default function Navbar() {
               })}
             </ul>
 
-            {/* Mobile Bar Controls */}
+            {/* Mobile Bar Controls: Sosmed Icons + Hamburger Menu */}
             <div className="flex md:hidden items-center justify-between w-full h-12">
-              <span className="text-xs font-bold text-white flex items-center gap-1.5 uppercase tracking-wider font-mono">
-                <Calendar className="w-3.5 h-3.5 text-red-300" />
-                {currentDate || 'Sabtu, 25 Juli 2026'}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-black text-red-200 uppercase tracking-wider font-mono mr-1">
+                  IKUTI:
+                </span>
+                <a
+                  href="https://facebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                  className="p-1.5 bg-black text-white hover:bg-red-950 transition"
+                >
+                  <FacebookIcon className="w-3.5 h-3.5" />
+                </a>
+                <a
+                  href="https://twitter.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Twitter"
+                  className="p-1.5 bg-black text-white hover:bg-red-950 transition"
+                >
+                  <TwitterIcon className="w-3.5 h-3.5" />
+                </a>
+                <a
+                  href="https://instagram.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                  className="p-1.5 bg-black text-white hover:bg-red-950 transition"
+                >
+                  <InstagramIcon className="w-3.5 h-3.5" />
+                </a>
+                <a
+                  href="https://youtube.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="YouTube"
+                  className="p-1.5 bg-black text-white hover:bg-red-950 transition"
+                >
+                  <YoutubeIcon className="w-3.5 h-3.5" />
+                </a>
+              </div>
 
               {/* Hamburger Button */}
               <button
@@ -156,7 +245,7 @@ export default function Navbar() {
         {/* Mobile Drawer Menu */}
         <div
           className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out bg-black text-white border-t-2 border-red-800 ${
-            mobileMenuOpen ? 'max-h-[500px] opacity-100 py-3' : 'max-h-0 opacity-0 py-0'
+            mobileMenuOpen ? 'max-h-[600px] opacity-100 py-3' : 'max-h-0 opacity-0 py-0'
           }`}
         >
           <div className="px-4 space-y-2">

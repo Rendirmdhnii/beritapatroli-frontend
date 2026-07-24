@@ -18,21 +18,21 @@ export default function Footer() {
               </div>
             </Link>
             <p className="text-xs text-gray-400 font-mono uppercase tracking-widest text-center md:text-left">
-              Portal Berita Investigasi & Hukum
+              Portal Berita Investigasi &amp; Hukum
             </p>
           </div>
 
-          {/* Bagian Kanan: Kontak Redaksi & Alamat */}
+          {/* Bagian Kanan: Kontak Redaksi & Alamat (Rata Kanan & Elegan) */}
           <div className="text-center md:text-right space-y-3">
-            <h3 className="text-sm font-extrabold text-white uppercase tracking-wider border-b-2 border-red-800 pb-1 inline-block">
-              Kontak Redaksi & Alamat
+            <h3 className="text-sm font-extrabold text-white uppercase tracking-wider border-b-2 border-red-800 pb-1 inline-block font-mono">
+              Kontak Redaksi &amp; Alamat
             </h3>
             <div className="text-xs text-gray-300 leading-relaxed space-y-1 font-sans">
-              <p className="font-bold text-gray-200 uppercase">
-                Gedung Press Center, Jl. Jend. Sudirman No. 45, Jakarta Pusat
+              <p className="font-bold text-gray-200 uppercase tracking-wider font-mono">
+                Sidoarjo
               </p>
               <p>
-                <span className="font-semibold text-gray-400">Telepon:</span> +62 (021) 555-0199
+                <span className="font-semibold text-gray-400">Telepon / WA:</span> 0812345678910
               </p>
               <p>
                 <span className="font-semibold text-gray-400">Email:</span> redaksi@beritapatroli.id
@@ -50,4 +50,3 @@ export default function Footer() {
     </footer>
   );
 }
-
