@@ -470,7 +470,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
               <div className="flex items-center gap-3">
                 {currentPage > 1 ? (
                   <Link
-                    href={`/kategori/${slug}?page=${currentPage - 1}`}
+                    href={`?page=${currentPage - 1}`}
                     className="px-5 py-2.5 bg-black hover:bg-red-800 text-white font-black text-xs uppercase tracking-wider rounded-none border-2 border-black transition inline-flex items-center gap-1"
                   >
                     <span>&lt;&lt; SEBELUMNYA</span>
@@ -483,7 +483,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
                 {currentPage < totalPages ? (
                   <Link
-                    href={`/kategori/${slug}?page=${currentPage + 1}`}
+                    href={`?page=${currentPage + 1}`}
                     className="px-5 py-2.5 bg-black hover:bg-red-800 text-white font-black text-xs uppercase tracking-wider rounded-none border-2 border-black transition inline-flex items-center gap-1"
                   >
                     <span>SELANJUTNYA &gt;&gt;</span>
