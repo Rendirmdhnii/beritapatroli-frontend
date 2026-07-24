@@ -215,9 +215,9 @@ export default async function ArticleDetailPage({ params }: PageProps) {
   const thumbnailUrl = getThumbnailUrl(post);
 
   return (
-    <div className="space-y-8 pb-16 font-sans">
+    <div className="space-y-8 pb-16 font-sans w-full max-w-full overflow-x-hidden">
       {/* Breadcrumb Navigation */}
-      <nav className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-gray-500 overflow-x-auto pb-1 max-w-5xl mx-auto px-4">
+      <nav className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-gray-500 overflow-x-auto pb-1 max-w-5xl mx-auto px-4 w-full">
         <Link href="/" className="hover:text-red-800 font-bold transition shrink-0">
           Beranda
         </Link>
@@ -232,10 +232,10 @@ export default async function ArticleDetailPage({ params }: PageProps) {
       </nav>
 
       {/* Main Grid: Article Column & Sidebar */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start max-w-7xl mx-auto px-0 md:px-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start max-w-7xl mx-auto px-0 md:px-4 w-full max-w-full">
         
         {/* ================= MAIN ARTICLE (BERSIH DI MOBILE, LATAR PUTIH, TANPA BORDER KAKU ON MOBILE) ================= */}
-        <article className="lg:col-span-8 bg-white border-0 md:border-2 md:border-black space-y-6 max-w-3xl mx-auto w-full rounded-none px-4 md:px-8 py-2 md:py-8">
+        <article className="lg:col-span-8 bg-white border-0 md:border-2 md:border-black space-y-6 max-w-3xl mx-auto w-full max-w-full rounded-none px-4 md:px-8 py-2 md:py-8">
           
           {/* 1. Kategori Badge */}
           <div>
@@ -315,9 +315,22 @@ export default async function ArticleDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* 5. Isi Berita (Terstruktur, Gambar & Iframe Terpaksa Responsif, Spacing Lega) */}
+          {/* 5. JURUS PAMUNGKAS SAKTI CSS MURNI & WP-CONTENT DIV */}
+          <style>{`
+            .wp-content img, .wp-content figure, .wp-content iframe {
+              max-width: 100% !important;
+              height: auto !important;
+              width: auto !important;
+              margin: 1rem auto !important;
+              border-radius: 0px !important;
+            }
+            .wp-content {
+              overflow-wrap: break-word !important;
+              word-wrap: break-word !important;
+            }
+          `}</style>
           <div
-            className="article-content w-full max-w-full overflow-hidden break-words whitespace-pre-wrap text-base md:text-lg text-gray-800 leading-loose [&_p]:mb-6 [&_img]:!max-w-full [&_img]:!w-full [&_img]:!h-auto [&_img]:!object-contain [&_img]:rounded-none [&_figure]:!max-w-full [&_figure]:!m-0 [&_iframe]:!max-w-full font-sans pt-4"
+            className="w-full max-w-full overflow-hidden break-words wp-content text-base md:text-lg text-gray-800 leading-loose [&_p]:mb-6 font-sans pt-4"
             dangerouslySetInnerHTML={{ __html: post.content?.rendered || '' }}
           />
 
@@ -382,7 +395,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
 
       {/* Recommendations Section (Visible on both desktop & mobile) */}
       {recentPosts.length > 0 && (
-        <section className="pt-10 border-t-2 border-black space-y-4 max-w-7xl mx-auto px-4 font-sans">
+        <section className="pt-10 border-t-2 border-black space-y-4 max-w-7xl mx-auto px-4 font-sans w-full max-w-full">
           <div className="flex items-center gap-2">
             <span className="w-3 h-5 bg-red-800 inline-block" />
             <h3 className="text-xl font-black text-black uppercase tracking-tight font-serif-heading">
