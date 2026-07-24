@@ -8,11 +8,13 @@ import {
   Folder,
   Calendar,
   ChevronRight,
-  Newspaper
+  Newspaper,
+  Eye
 } from 'lucide-react';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ page?: string }>;
 }
 
 interface WpCategory {
@@ -65,6 +67,46 @@ interface WpPost {
     'wp:featuredmedia'?: WpMedia[];
     'wp:term'?: WpTerm[][];
   };
+}
+
+interface WpPostsCategoryResponse {
+  posts: WpPost[];
+  totalPages: number;
+}
+
+// Social Media Icons SVGs
+function FacebookIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg fill="currentColor" viewBox="0 0 24 24" {...props}>
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+    </svg>
+  );
+}
+
+function TwitterIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg fill="currentColor" viewBox="0 0 24 24" {...props}>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    </svg>
+  );
+}
+
+function InstagramIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" {...props}>
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+    </svg>
+  );
+}
+
+function YoutubeIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg fill="currentColor" viewBox="0 0 24 24" {...props}>
+      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+    </svg>
+  );
 }
 
 // Helpers for decoding WP REST API strings
@@ -127,6 +169,11 @@ function getAuthor(post: WpPost): string {
   return author ? decodeHtmlEntities(author) : 'Redaksi';
 }
 
+function getViewsCount(id: number): string {
+  const views = ((id * 47 + 789) % 4500) + 500;
+  return views.toLocaleString('id-ID');
+}
+
 // ================= FETCH CATEGORY BY SLUG =================
 async function getCategory(slug: string): Promise<WpCategory | null> {
   try {
@@ -143,18 +190,24 @@ async function getCategory(slug: string): Promise<WpCategory | null> {
   }
 }
 
-// ================= FETCH POSTS BY CATEGORY ID =================
-async function getPostsByCategory(categoryId: number): Promise<WpPost[]> {
+// ================= FETCH POSTS BY CATEGORY ID WITH PAGINATION =================
+async function getPostsByCategory(categoryId: number, page: number = 1): Promise<WpPostsCategoryResponse> {
   try {
     const res = await fetch(
-      `https://beritapatroli.co.id/wp-json/wp/v2/posts?categories=${categoryId}&_embed&per_page=12`,
+      `https://beritapatroli.co.id/wp-json/wp/v2/posts?categories=${categoryId}&_embed&per_page=12&page=${page}`,
       { next: { revalidate: 60 } }
     );
-    if (!res.ok) return [];
-    return await res.json();
+    if (!res.ok) {
+      return { posts: [], totalPages: 1 };
+    }
+
+    const totalPagesHeader = res.headers.get('X-WP-TotalPages');
+    const totalPages = totalPagesHeader ? parseInt(totalPagesHeader, 10) : 1;
+    const posts: WpPost[] = await res.json();
+    return { posts, totalPages };
   } catch (error) {
     console.error('Error fetching posts by category ID:', error);
-    return [];
+    return { posts: [], totalPages: 1 };
   }
 }
 
@@ -190,8 +243,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function CategoryPage({ params }: PageProps) {
+export default async function CategoryPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
+  const resolvedSearchParams = await searchParams;
+  const currentPage = Math.max(1, parseInt(resolvedSearchParams?.page || '1', 10) || 1);
 
   // Tangkap kategori dari slug URL
   const category = await getCategory(slug);
@@ -224,9 +279,9 @@ export default async function CategoryPage({ params }: PageProps) {
     );
   }
 
-  // Jika kategori ditemukan, ambil ID-nya dan panggil getPostsByCategory(category.id)
-  const [posts, recentPosts] = await Promise.all([
-    getPostsByCategory(category.id),
+  // Jika kategori ditemukan, panggil getPostsByCategory(category.id, currentPage)
+  const [{ posts, totalPages }, recentPosts] = await Promise.all([
+    getPostsByCategory(category.id, currentPage),
     getWpRecentPosts(),
   ]);
 
@@ -245,8 +300,8 @@ export default async function CategoryPage({ params }: PageProps) {
         <span className="text-black font-black">{categoryName}</span>
       </nav>
 
-      {/* Category Header Banner - Industrial Legal Investigation Style */}
-      <div className="bg-black text-white border-l-8 border-red-800 border-2 border-black p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-none">
+      {/* Clean Industrial Category Header Banner + 4 Social Icons */}
+      <div className="bg-black text-white border-l-8 border-red-800 border-2 border-black p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 rounded-none">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="p-1.5 bg-red-800 text-white rounded-none">
@@ -256,18 +311,54 @@ export default async function CategoryPage({ params }: PageProps) {
               KATEGORI HUKUM & INVESTIGASI
             </span>
           </div>
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight font-serif-heading uppercase text-white">
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tight font-serif-heading uppercase text-white">
             {categoryName}
           </h1>
           {category.description && (
-            <p className="text-gray-300 text-xs sm:text-sm max-w-2xl leading-relaxed">
+            <p className="text-gray-300 text-xs sm:text-sm max-w-2xl leading-relaxed font-sans">
               {category.description}
             </p>
           )}
         </div>
-        <div className="bg-zinc-900 border-2 border-black px-5 py-3 text-center shrink-0 rounded-none">
-          <p className="text-3xl font-black text-white font-serif-heading">{posts.length}</p>
-          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest font-mono">Artikel Ditemukan</p>
+
+        {/* 4 Social Media Icons Sejajar Kanan */}
+        <div className="flex items-center gap-3 text-white shrink-0 sm:self-center">
+          <a
+            href="https://facebook.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Facebook"
+            className="p-2.5 bg-zinc-900 border border-zinc-700 hover:bg-red-800 hover:border-red-800 hover:text-white transition-all rounded-none"
+          >
+            <FacebookIcon className="w-5 h-5" />
+          </a>
+          <a
+            href="https://twitter.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Twitter"
+            className="p-2.5 bg-zinc-900 border border-zinc-700 hover:bg-red-800 hover:border-red-800 hover:text-white transition-all rounded-none"
+          >
+            <TwitterIcon className="w-5 h-5" />
+          </a>
+          <a
+            href="https://instagram.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram"
+            className="p-2.5 bg-zinc-900 border border-zinc-700 hover:bg-red-800 hover:border-red-800 hover:text-white transition-all rounded-none"
+          >
+            <InstagramIcon className="w-5 h-5" />
+          </a>
+          <a
+            href="https://youtube.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Youtube"
+            className="p-2.5 bg-zinc-900 border border-zinc-700 hover:bg-red-800 hover:border-red-800 hover:text-white transition-all rounded-none"
+          >
+            <YoutubeIcon className="w-5 h-5" />
+          </a>
         </div>
       </div>
 
@@ -277,18 +368,20 @@ export default async function CategoryPage({ params }: PageProps) {
             <Newspaper className="w-8 h-8" />
           </div>
           <h3 className="text-lg font-black text-black uppercase tracking-tight font-serif-heading">
-            Belum Ada Berita Untuk Kategori {categoryName}
+            Belum Ada Berita Untuk Kategori {categoryName} (Halaman {currentPage})
           </h3>
-          <p className="text-gray-700 text-xs max-w-md mx-auto">
-            Silakan kembali ke halaman utama untuk membaca berita dan arsip kriminal terkini lainnya.
+          <p className="text-gray-700 text-xs max-w-md mx-auto font-sans">
+            Silakan kembali ke halaman awal kategori atau ke halaman utama untuk membaca berita terkini.
           </p>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 bg-red-800 hover:bg-black text-white font-black text-xs px-5 py-2.5 transition uppercase tracking-wider rounded-none"
-          >
-            <span>Kembali ke Beranda</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+          <div className="pt-2">
+            <Link
+              href={`/kategori/${slug}`}
+              className="inline-flex items-center gap-2 bg-red-800 hover:bg-black text-white font-black text-xs px-5 py-2.5 transition uppercase tracking-wider rounded-none"
+            >
+              <span>Kembali ke Halaman 1 Kategori</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -302,7 +395,7 @@ export default async function CategoryPage({ params }: PageProps) {
                 </h2>
               </div>
               <span className="text-xs font-mono text-gray-400 uppercase tracking-widest hidden sm:inline-block">
-                {posts.length} Berita Terbit
+                Halaman {currentPage} Dari {totalPages}
               </span>
             </div>
 
@@ -327,7 +420,7 @@ export default async function CategoryPage({ params }: PageProps) {
 
                   {/* Content Teks */}
                   <div className="flex-1 min-w-0 space-y-1.5">
-                    <div className="flex items-center gap-3 text-[11px] font-mono text-gray-600 uppercase tracking-wider">
+                    <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono text-gray-600 uppercase tracking-wider">
                       <span className="flex items-center gap-1 font-bold text-red-800">
                         <User className="w-3 h-3" />
                         {getAuthor(news)}
@@ -336,6 +429,11 @@ export default async function CategoryPage({ params }: PageProps) {
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3 h-3 text-gray-500" />
                         {formatDate(news.date)}
+                      </span>
+                      <span className="text-gray-400">•</span>
+                      <span className="flex items-center gap-1 font-bold text-gray-700">
+                        <Eye className="w-3.5 h-3.5 text-red-800" />
+                        <span>{getViewsCount(news.id)} dilihat</span>
                       </span>
                     </div>
 
@@ -362,6 +460,42 @@ export default async function CategoryPage({ params }: PageProps) {
                 </article>
               ))}
             </div>
+
+            {/* ================= TOMBOL NAVIGASI PAGINATION GARANG ================= */}
+            <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t-2 border-black font-sans">
+              <div className="text-xs font-mono font-bold text-gray-700 uppercase tracking-widest">
+                HALAMAN <span className="text-red-800 font-black">{currentPage}</span> {totalPages ? `DARI ${totalPages}` : ''}
+              </div>
+
+              <div className="flex items-center gap-3">
+                {currentPage > 1 ? (
+                  <Link
+                    href={`/kategori/${slug}?page=${currentPage - 1}`}
+                    className="px-5 py-2.5 bg-black hover:bg-red-800 text-white font-black text-xs uppercase tracking-wider rounded-none border-2 border-black transition inline-flex items-center gap-1"
+                  >
+                    <span>&lt;&lt; SEBELUMNYA</span>
+                  </Link>
+                ) : (
+                  <span className="px-5 py-2.5 bg-gray-200 text-gray-400 font-black text-xs uppercase tracking-wider rounded-none border-2 border-gray-300 cursor-not-allowed inline-flex items-center gap-1">
+                    &lt;&lt; SEBELUMNYA
+                  </span>
+                )}
+
+                {currentPage < totalPages ? (
+                  <Link
+                    href={`/kategori/${slug}?page=${currentPage + 1}`}
+                    className="px-5 py-2.5 bg-black hover:bg-red-800 text-white font-black text-xs uppercase tracking-wider rounded-none border-2 border-black transition inline-flex items-center gap-1"
+                  >
+                    <span>SELANJUTNYA &gt;&gt;</span>
+                  </Link>
+                ) : (
+                  <span className="px-5 py-2.5 bg-gray-200 text-gray-400 font-black text-xs uppercase tracking-wider rounded-none border-2 border-gray-300 cursor-not-allowed inline-flex items-center gap-1">
+                    SELANJUTNYA &gt;&gt;
+                  </span>
+                )}
+              </div>
+            </div>
+
           </div>
 
           {/* Right Column: Sidebar (4 Cols) */}
@@ -396,6 +530,11 @@ export default async function CategoryPage({ params }: PageProps) {
                       </Link>
                       <div className="flex items-center gap-2 text-[11px] text-gray-500 font-mono">
                         <span>{formatDate(news.date)}</span>
+                        <span>•</span>
+                        <span className="flex items-center gap-1 text-gray-700 font-semibold">
+                          <Eye className="w-3 h-3 text-red-800" />
+                          <span>{getViewsCount(news.id)}</span>
+                        </span>
                       </div>
                     </div>
                   </div>

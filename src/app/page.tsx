@@ -9,6 +9,10 @@ import {
   Calendar
 } from 'lucide-react';
 
+interface PageProps {
+  searchParams: Promise<{ page?: string }>;
+}
+
 interface WpMediaSize {
   source_url?: string;
 }
@@ -51,6 +55,11 @@ interface WpPost {
     'wp:featuredmedia'?: WpMedia[];
     'wp:term'?: WpTerm[][];
   };
+}
+
+interface WpPostsResponse {
+  posts: WpPost[];
+  totalPages: number;
 }
 
 // Helpers for parsing WP API data
@@ -113,51 +122,65 @@ function getAuthor(post: WpPost): string {
   return author ? decodeHtmlEntities(author) : 'Redaksi';
 }
 
-// Fetch posts from WordPress REST API
-async function getWpPosts(): Promise<WpPost[]> {
+// Fetch posts from WordPress REST API with page parameter
+async function getWpPosts(page: number = 1): Promise<WpPostsResponse> {
   try {
-    const res = await fetch('https://beritapatroli.co.id/wp-json/wp/v2/posts?_embed', {
+    const res = await fetch(`https://beritapatroli.co.id/wp-json/wp/v2/posts?_embed&per_page=12&page=${page}`, {
       next: { revalidate: 60 },
     });
 
     if (!res.ok) {
-      throw new Error(`Gagal mengambil berita: ${res.status} ${res.statusText}`);
+      return { posts: [], totalPages: 1 };
     }
 
+    const totalPagesHeader = res.headers.get('X-WP-TotalPages');
+    const totalPages = totalPagesHeader ? parseInt(totalPagesHeader, 10) : 1;
     const posts: WpPost[] = await res.json();
-    return posts;
+    return { posts, totalPages };
   } catch (error) {
     console.error('Error fetching WordPress posts:', error);
-    return [];
+    return { posts: [], totalPages: 1 };
   }
 }
 
-export default async function HomePage() {
-  const posts = await getWpPosts();
+export default async function HomePage({ searchParams }: PageProps) {
+  const resolvedSearchParams = await searchParams;
+  const currentPage = Math.max(1, parseInt(resolvedSearchParams?.page || '1', 10) || 1);
+
+  const { posts, totalPages } = await getWpPosts(currentPage);
 
   if (!posts || posts.length === 0) {
     return (
-      <div className="py-20 text-center space-y-4 border-2 border-black bg-white p-8 rounded-none">
+      <div className="py-20 text-center space-y-4 border-2 border-black bg-white p-8 rounded-none my-8 max-w-4xl mx-auto">
         <div className="w-16 h-16 bg-red-950 text-red-500 border border-red-800 flex items-center justify-center mx-auto rounded-none">
           <Newspaper className="w-8 h-8" />
         </div>
         <h2 className="text-2xl font-black text-black font-serif-heading uppercase tracking-tight">Tidak Ada Berita Ditemukan</h2>
         <p className="text-gray-700 text-xs max-w-md mx-auto font-sans">
-          Gagal memuat berita dari server WordPress REST API. Silakan coba muat ulang halaman beberapa saat lagi.
+          Gagal memuat berita untuk halaman {currentPage} dari server WordPress REST API. Silakan coba muat ulang atau kembali ke halaman utama.
         </p>
+        <div className="pt-2">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 bg-red-800 hover:bg-black text-white font-black text-xs px-5 py-2.5 transition uppercase tracking-wider rounded-none border border-black"
+          >
+            <span>Kembali ke Halaman 1</span>
+          </Link>
+        </div>
       </div>
     );
   }
 
-  const mainHeadline = posts[0];
-  const secondaryHeadlines = posts.slice(1, 4);
-  const remainingNews = posts.slice(4);
+  const isFirstPage = currentPage === 1;
+  const mainHeadline = isFirstPage ? posts[0] : null;
+  const secondaryHeadlines = isFirstPage ? posts.slice(1, 4) : [];
+  const remainingNews = isFirstPage ? posts.slice(4) : posts;
 
   return (
     <div className="space-y-10 pb-16 font-sans">
       
-      {/* ================= 1. FULL-WIDTH HEADLINE BANNER (INVESTIGASI HUKUM) ================= */}
-      {mainHeadline && (
+      {/* ================= 1. FULL-WIDTH HEADLINE BANNER (HALAMAN 1 SAJA) ================= */}
+      {isFirstPage && mainHeadline && (
         <section className="relative w-full bg-black border-b-4 border-black overflow-hidden rounded-none">
           <div className="relative h-[420px] sm:h-[520px] lg:h-[600px] w-full">
             <img
@@ -207,8 +230,8 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* ================= 2. GRID INVESTIGASI SEKUNDER (3 COLUMN COMPACT BANNER) ================= */}
-      {secondaryHeadlines.length > 0 && (
+      {/* ================= 2. GRID INVESTIGASI SEKUNDER (HALAMAN 1 SAJA) ================= */}
+      {isFirstPage && secondaryHeadlines.length > 0 && (
         <section className="space-y-4">
           <div className="border-b-4 border-black pb-2 flex items-center justify-between">
             <h2 className="text-lg font-black text-black uppercase tracking-wider font-serif-heading flex items-center gap-2">
@@ -268,17 +291,17 @@ export default async function HomePage() {
           <div className="flex items-center gap-2">
             <Newspaper className="w-5 h-5 text-red-500" />
             <h2 className="text-base sm:text-lg font-black uppercase tracking-widest font-serif-heading">
-              Arsip Berita & Catatan Kriminal Terbaru
+              {isFirstPage ? 'Arsip Berita & Catatan Kriminal Terbaru' : `Arsip Berita Kriminal - Halaman ${currentPage}`}
             </h2>
           </div>
           <span className="text-xs font-mono text-gray-400 uppercase tracking-widest hidden sm:inline-block">
-            Koran Cetak Digital
+            Halaman {currentPage} Dari {totalPages}
           </span>
         </div>
 
         {/* Dense List View */}
         <div className="divide-y-2 divide-black border-t-2 border-b-2 border-black bg-white rounded-none">
-          {(remainingNews.length > 0 ? remainingNews : posts).map((news) => (
+          {remainingNews.map((news) => (
             <article
               key={news.id}
               className="py-4 px-2 sm:px-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center hover:bg-zinc-100 transition group rounded-none"
@@ -332,6 +355,42 @@ export default async function HomePage() {
             </article>
           ))}
         </div>
+
+        {/* ================= TOMBOL NAVIGASI PAGINATION GARANG ================= */}
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t-2 border-black font-sans">
+          <div className="text-xs font-mono font-bold text-gray-700 uppercase tracking-widest">
+            HALAMAN <span className="text-red-800 font-black">{currentPage}</span> {totalPages ? `DARI ${totalPages}` : ''}
+          </div>
+
+          <div className="flex items-center gap-3">
+            {currentPage > 1 ? (
+              <Link
+                href={`?page=${currentPage - 1}`}
+                className="px-5 py-2.5 bg-black hover:bg-red-800 text-white font-black text-xs uppercase tracking-wider rounded-none border-2 border-black transition inline-flex items-center gap-1"
+              >
+                <span>&lt;&lt; SEBELUMNYA</span>
+              </Link>
+            ) : (
+              <span className="px-5 py-2.5 bg-gray-200 text-gray-400 font-black text-xs uppercase tracking-wider rounded-none border-2 border-gray-300 cursor-not-allowed inline-flex items-center gap-1">
+                &lt;&lt; SEBELUMNYA
+              </span>
+            )}
+
+            {currentPage < totalPages ? (
+              <Link
+                href={`?page=${currentPage + 1}`}
+                className="px-5 py-2.5 bg-black hover:bg-red-800 text-white font-black text-xs uppercase tracking-wider rounded-none border-2 border-black transition inline-flex items-center gap-1"
+              >
+                <span>SELANJUTNYA &gt;&gt;</span>
+              </Link>
+            ) : (
+              <span className="px-5 py-2.5 bg-gray-200 text-gray-400 font-black text-xs uppercase tracking-wider rounded-none border-2 border-gray-300 cursor-not-allowed inline-flex items-center gap-1">
+                SELANJUTNYA &gt;&gt;
+              </span>
+            )}
+          </div>
+        </div>
+
       </section>
 
     </div>
