@@ -8,7 +8,6 @@ import {
   Menu, 
   X, 
   Calendar, 
-  ShieldAlert, 
   ChevronRight
 } from 'lucide-react';
 import { categories } from '@/data/categories';
@@ -34,7 +33,6 @@ export default function Navbar() {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // Navigate or handle search
       setSearchQuery('');
       setMobileMenuOpen(false);
     }
@@ -42,8 +40,8 @@ export default function Navbar() {
 
   return (
     <header className="w-full bg-white border-b border-gray-200">
-      {/* ================= TINGKAT ATAS (TOP TIER: DATE - LOGO - SEARCH) ================= */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 border-b border-gray-200">
+      {/* ================= TINGKAT ATAS (TOP TIER: DATE - OFFICIAL IMAGE LOGO - SEARCH) ================= */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 border-b border-gray-200">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
           
           {/* Left Column: Date Today */}
@@ -57,26 +55,15 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Center Column: Large Newspaper Logo */}
-          <div className="md:col-span-6 flex flex-col items-center text-center">
-            <Link href="/" className="inline-flex items-center gap-3 group">
-              <div className="bg-[#990000] text-white p-2.5 rounded-xs transition flex items-center justify-center shrink-0">
-                <ShieldAlert className="w-7 h-7 sm:w-9 sm:h-9" />
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="flex items-center gap-2">
-                  <span className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#111111] uppercase font-serif-heading leading-none">
-                    BERITA <span className="text-[#990000]">PATROLI</span>
-                  </span>
-                  <span className="bg-[#111111] text-white text-[10px] sm:text-xs font-bold px-1.5 py-0.5 uppercase tracking-widest font-sans">
-                    .ID
-                  </span>
-                </div>
-              </div>
+          {/* Center Column: Official Logo Image (/lgberitapatroli.jpg) */}
+          <div className="md:col-span-6 flex flex-col items-center justify-center text-center">
+            <Link href="/" className="inline-block group">
+              <img
+                src="/lgberitapatroli.jpg"
+                alt="Berita Patroli"
+                className="h-14 sm:h-18 lg:h-20 w-auto max-h-20 object-contain mx-auto transition-transform group-hover:scale-[1.02]"
+              />
             </Link>
-            <p className="text-[11px] sm:text-xs font-medium text-slate-500 tracking-widest font-sans uppercase mt-1">
-              Koran Digital Terpercaya • Tepat • Akurat
-            </p>
           </div>
 
           {/* Right Column: Search Form */}
@@ -149,7 +136,7 @@ export default function Navbar() {
                 {currentDate || 'Jumat, 24 Juli 2026'}
               </span>
 
-              {/* Hamburger Button with Mulus Smooth Animation Toggle */}
+              {/* Hamburger Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="p-2 text-white hover:bg-[#7a0000] transition-colors focus:outline-hidden flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider"

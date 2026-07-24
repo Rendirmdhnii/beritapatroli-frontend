@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 interface PageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 interface WpCategory {
@@ -128,31 +128,33 @@ function getAuthor(post: WpPost): string {
   return author ? decodeHtmlEntities(author) : 'Redaksi';
 }
 
-// Fetch Category metadata by ID
-async function getWpCategory(id: string): Promise<WpCategory | null> {
+// ================= FETCH TAHAP 1: Dapatkan ID & Info Kategori dari Slug URL =================
+async function getWpCategoryBySlug(slug: string): Promise<WpCategory | null> {
   try {
-    const res = await fetch(`https://beritapatroli.co.id/wp-json/wp/v2/categories/${id}`, {
-      next: { revalidate: 300 },
-    });
+    const res = await fetch(
+      `https://beritapatroli.co.id/wp-json/wp/v2/categories?slug=${encodeURIComponent(slug)}`,
+      { next: { revalidate: 300 } }
+    );
     if (!res.ok) return null;
-    return await res.json();
+    const categoriesList: WpCategory[] = await res.json();
+    return categoriesList && categoriesList.length > 0 ? categoriesList[0] : null;
   } catch (error) {
-    console.error('Error fetching WP category details:', error);
+    console.error('Error fetching WP category by slug (Tahap 1):', error);
     return null;
   }
 }
 
-// Fetch Posts by Category ID
-async function getWpPostsByCategory(id: string): Promise<WpPost[]> {
+// ================= FETCH TAHAP 2: Ambil Daftar Berita Berdasarkan ID Angka Kategori =================
+async function getWpPostsByCategoryId(categoryId: number): Promise<WpPost[]> {
   try {
     const res = await fetch(
-      `https://beritapatroli.co.id/wp-json/wp/v2/posts?categories=${id}&_embed`,
+      `https://beritapatroli.co.id/wp-json/wp/v2/posts?categories=${categoryId}&_embed`,
       { next: { revalidate: 60 } }
     );
     if (!res.ok) return [];
     return await res.json();
   } catch (error) {
-    console.error('Error fetching WP posts by category:', error);
+    console.error('Error fetching WP posts by category ID (Tahap 2):', error);
     return [];
   }
 }
@@ -172,8 +174,8 @@ async function getWpRecentPosts(): Promise<WpPost[]> {
 
 // Dynamic Metadata Generation
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id } = await params;
-  const category = await getWpCategory(id);
+  const { slug } = await params;
+  const category = await getWpCategoryBySlug(slug);
 
   if (!category) {
     return {
@@ -190,18 +192,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function CategoryPage({ params }: PageProps) {
-  const { id } = await params;
+  const { slug } = await params;
 
-  // Fetch category info and category posts in parallel
-  const [category, posts, recentPosts] = await Promise.all([
-    getWpCategory(id),
-    getWpPostsByCategory(id),
-    getWpRecentPosts(),
-  ]);
+  // FETCH TAHAP 1: Ambil data kategori dari slug URL
+  const category = await getWpCategoryBySlug(slug);
 
   if (!category) {
     notFound();
   }
+
+  // FETCH TAHAP 2 & Sidebar: Ambil berita kategori berdasarkan ID & berita terkini
+  const [posts, recentPosts] = await Promise.all([
+    getWpPostsByCategoryId(category.id),
+    getWpRecentPosts(),
+  ]);
 
   const categoryName = decodeHtmlEntities(category.name);
   const mainHeadline = posts[0];
