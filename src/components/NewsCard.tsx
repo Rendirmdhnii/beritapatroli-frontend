@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { User, Calendar, Eye } from 'lucide-react';
+import { User, Clock, Eye } from 'lucide-react';
 
 export interface WpMediaSize {
   source_url?: string;
@@ -97,12 +97,12 @@ export function getThumbnailUrl(post: WpPost): string {
 
 export function getCategory(post: WpPost): string {
   const category = post._embedded?.['wp:term']?.[0]?.[0]?.name;
-  return category ? decodeHtmlEntities(category) : 'Berita';
+  return category ? decodeHtmlEntities(category) : 'BERITA';
 }
 
 export function getAuthor(post: WpPost): string {
   const author = post._embedded?.['author']?.[0]?.name;
-  return author ? decodeHtmlEntities(author) : 'Redaksi';
+  return author ? decodeHtmlEntities(author) : 'admin';
 }
 
 export function getViewsCount(id: number): string {
@@ -118,55 +118,60 @@ interface NewsCardProps {
 export default function NewsCard({ post, fallbackCategory }: NewsCardProps) {
   const title = decodeHtmlEntities(post.title.rendered);
   const excerpt = stripHtmlTags(post.excerpt.rendered);
-  const category = fallbackCategory || getCategory(post);
+  const category = (fallbackCategory || getCategory(post)).toUpperCase();
   const author = getAuthor(post);
   const formattedDate = formatDate(post.date);
   const views = getViewsCount(post.id);
   const thumbnailUrl = getThumbnailUrl(post);
 
   return (
-    <article className="border-b border-gray-200 pb-4 mb-4 flex flex-col sm:flex-row gap-4 items-start group">
-      {/* Thumbnail Gambar */}
-      <div className="w-full sm:w-48 aspect-video shrink-0 bg-black overflow-hidden relative rounded-none">
+    <article className="border-b border-gray-200 pb-4 mb-4 flex flex-col sm:flex-row gap-4 items-start group font-sans">
+      {/* Gambar Thumbnail (Aspect Ratio 16/9 Orisinal WordPress) */}
+      <div className="w-full sm:w-48 aspect-video shrink-0 bg-gray-100 overflow-hidden relative border border-gray-200">
         <img
           src={thumbnailUrl}
           alt={title}
-          className="w-full aspect-video object-cover group-hover:scale-105 transition duration-500 opacity-95"
+          className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
         />
-        <span className="absolute top-1 left-1 bg-red-600 text-white text-[9px] font-black px-1.5 py-0.5 uppercase tracking-wider rounded-none">
+        <span className="absolute top-1 left-1 bg-[#ff3c36] text-white text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-wider">
           {category}
         </span>
       </div>
 
       {/* Konten Berita */}
       <div className="flex-1 min-w-0 space-y-1">
-        {/* Metadata Penulis, Tanggal, dan Views */}
-        <div className="flex flex-wrap items-center gap-2 text-[11px] md:text-xs text-gray-500 mb-2 mt-2 font-medium uppercase">
-          <span className="flex items-center gap-1">
-            <User className="w-3 h-3 text-red-600" />
-            {author}
-          </span>
-          <span>•</span>
-          <span className="flex items-center gap-1">
-            <Calendar className="w-3 h-3 text-red-600" />
-            {formattedDate}
-          </span>
-          <span>•</span>
-          <span className="flex items-center gap-1">
-            <Eye className="w-3 h-3 text-red-600" />
-            <span>{views} DILIHAT</span>
-          </span>
-        </div>
+        {/* Kategori Text di Atas Judul */}
+        <span className="text-[10px] font-bold text-[#ff3c36] uppercase tracking-wider block">
+          {category}
+        </span>
 
-        {/* Judul Berita */}
+        {/* Judul Berita Orisinal */}
         <Link href={`/berita/${post.slug}`}>
-          <h3 className="text-base md:text-xl font-bold leading-snug hover:text-red-600 transition-colors">
+          <h3 className="text-base md:text-xl font-bold leading-snug text-[#222222] hover:text-[#ff3c36] transition-colors">
             {title}
           </h3>
         </Link>
 
-        {/* Deskripsi Singkat (Excerpt) */}
-        <p className="text-sm text-gray-600 line-clamp-2 mt-1 leading-relaxed font-sans">
+        {/* Metadata Orisinal: Penulis (By admin), Tanggal (Clock), Views (Eye) */}
+        <div className="flex flex-wrap items-center gap-2 text-[11px] md:text-xs text-gray-500 mb-2 mt-2 font-medium uppercase">
+          <span className="flex items-center gap-1">
+            <User className="w-3 h-3 text-[#ff3c36]" />
+            <span>By {author}</span>
+          </span>
+          <span>•</span>
+          <span className="flex items-center gap-1">
+            <Clock className="w-3 h-3 text-[#ff3c36]" />
+            <span>{formattedDate}</span>
+          </span>
+          <span>•</span>
+          <span className="flex items-center gap-1">
+            <Eye className="w-3 h-3 text-[#ff3c36]" />
+            <span>{views} DILIHAT</span>
+          </span>
+        </div>
+
+        {/* Deskripsi Singkat Excerpt */}
+        <p className="text-sm text-gray-600 line-clamp-2 mt-1 leading-relaxed">
           {excerpt}
         </p>
       </div>
