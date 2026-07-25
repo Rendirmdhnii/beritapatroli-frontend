@@ -132,26 +132,26 @@ export default function HeadlineCarousel({ posts }: HeadlineCarouselProps) {
   const currentPost = topPosts[currentIndex];
 
   return (
-    <section className="max-w-6xl mx-auto w-full relative overflow-hidden h-[300px] md:h-[450px] lg:h-[500px] my-6 bg-black border-2 border-black rounded-none">
-      <div className="relative w-full h-full">
+    <section className="max-w-6xl mx-auto w-full relative overflow-hidden my-6 bg-[#1a1a1a] border-2 border-black rounded-none">
+      <div className="relative w-full min-h-[300px] md:min-h-[450px] lg:min-h-[500px] flex items-center justify-center">
         {/* Background Images with smooth fade transition */}
         {topPosts.map((post, idx) => (
           <div
             key={post.id}
-            className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+            className={`absolute inset-0 flex items-center justify-center transition-opacity duration-700 ease-in-out ${
               idx === currentIndex ? 'opacity-100 z-0' : 'opacity-0 -z-10'
             }`}
           >
             <img
               src={getThumbnailUrl(post)}
               alt={decodeHtmlEntities(post.title.rendered)}
-              className="w-full h-full object-cover object-center opacity-90 rounded-none"
+              className="w-full h-auto max-h-[550px] object-contain bg-[#1a1a1a]"
             />
           </div>
         ))}
 
         {/* Gradient Overlay for photo clarity */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent z-1" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent z-1 pointer-events-none" />
 
         {/* Top Badges (Tanpa ikon Flame/hiasan alay, bersih profesional) */}
         <div className="absolute top-4 left-4 sm:top-6 sm:left-6 flex flex-wrap gap-2 z-10">
@@ -196,7 +196,7 @@ export default function HeadlineCarousel({ posts }: HeadlineCarouselProps) {
           </div>
 
           <Link href={`/berita/${currentPost.slug}`} className="block group">
-            <h1 className="text-2xl md:text-3xl font-black text-white leading-tight tracking-tight hover:text-red-400 transition font-serif-heading uppercase line-clamp-2">
+            <h1 className="text-2xl md:text-3xl font-bold normal-case text-white leading-tight tracking-tight hover:text-red-400 transition font-serif-heading line-clamp-2">
               {decodeHtmlEntities(currentPost.title.rendered)}
             </h1>
           </Link>
