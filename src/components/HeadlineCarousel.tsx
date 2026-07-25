@@ -182,28 +182,30 @@ export default function HeadlineCarousel({ posts }: HeadlineCarouselProps) {
         </div>
 
         {/* Content Overlay - Title & Excerpt */}
-        <div className="absolute bottom-6 sm:bottom-8 inset-x-0 p-6 sm:p-8 lg:p-10 space-y-2 z-10 max-w-5xl">
-          <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-gray-300 uppercase tracking-widest">
-            <span className="flex items-center gap-1.5 font-bold text-red-500">
-              <User className="w-4 h-4" />
-              {getAuthor(currentPost)}
-            </span>
-            <span className="text-zinc-600">•</span>
-            <span className="flex items-center gap-1.5">
-              <Calendar className="w-4 h-4 text-gray-400" />
-              {formatDate(currentPost.date)}
-            </span>
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/80 to-transparent pt-32 pb-6 px-4 md:px-8 flex flex-col justify-end z-10">
+          <div className="space-y-2 max-w-5xl">
+            <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-gray-300 uppercase tracking-widest">
+              <span className="flex items-center gap-1.5 font-bold text-red-500">
+                <User className="w-4 h-4" />
+                {getAuthor(currentPost)}
+              </span>
+              <span className="text-zinc-600">•</span>
+              <span className="flex items-center gap-1.5">
+                <Calendar className="w-4 h-4 text-gray-400" />
+                {formatDate(currentPost.date)}
+              </span>
+            </div>
+
+            <Link href={`/berita/${currentPost.slug}`} className="block group">
+              <h1 className="text-2xl md:text-3xl font-bold normal-case text-white leading-tight tracking-tight hover:text-red-400 transition font-serif-heading line-clamp-2">
+                {decodeHtmlEntities(currentPost.title.rendered)}
+              </h1>
+            </Link>
+
+            <p className="text-gray-300 text-sm line-clamp-2 leading-relaxed max-w-4xl font-normal hidden sm:block border-l-2 border-red-800 pl-3 py-1 font-sans">
+              {stripHtmlTags(currentPost.excerpt.rendered)}
+            </p>
           </div>
-
-          <Link href={`/berita/${currentPost.slug}`} className="block group">
-            <h1 className="text-2xl md:text-3xl font-bold normal-case text-white leading-tight tracking-tight hover:text-red-400 transition font-serif-heading line-clamp-2">
-              {decodeHtmlEntities(currentPost.title.rendered)}
-            </h1>
-          </Link>
-
-          <p className="text-gray-300 text-sm line-clamp-2 leading-relaxed max-w-4xl font-normal hidden sm:block border-l-2 border-red-800 pl-3 bg-black/40 py-1 font-sans">
-            {stripHtmlTags(currentPost.excerpt.rendered)}
-          </p>
         </div>
 
         {/* Dots Indicator Sakti - Always Visible on All Devices (HP & Desktop) */}
