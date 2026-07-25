@@ -132,8 +132,8 @@ export default function HeadlineCarousel({ posts }: HeadlineCarouselProps) {
   const currentPost = topPosts[currentIndex];
 
   return (
-    <section className="relative w-full bg-black border-b-4 border-black overflow-hidden rounded-none">
-      <div className="relative h-[380px] sm:h-[460px] lg:h-[500px] w-full">
+    <section className="w-full relative overflow-hidden h-[350px] md:h-[450px] lg:h-[550px] bg-black border-b-4 border-black rounded-none">
+      <div className="relative w-full h-full">
         {/* Background Images with smooth fade transition */}
         {topPosts.map((post, idx) => (
           <div
@@ -145,7 +145,7 @@ export default function HeadlineCarousel({ posts }: HeadlineCarouselProps) {
             <img
               src={getThumbnailUrl(post)}
               alt={decodeHtmlEntities(post.title.rendered)}
-              className="w-full h-full object-cover opacity-90 rounded-none"
+              className="w-full h-full object-cover object-top opacity-90 rounded-none"
             />
           </div>
         ))}
